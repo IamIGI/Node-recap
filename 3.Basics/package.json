@@ -1,11 +1,15 @@
 {
   "scripts": {
-    "build": "tsc --outDir dist && node dist/app.js"
+    "build": "tsc --outDir dist",
+    "dev": "nodemon dist/app.js"
   },
   "name": "3.basics",
   "version": "1.0.0",
-  "description": "learnign NODE again",
+  "description": "learning NODE again",
   "main": "dist/app.js",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
 }
