@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "build": "tsc --outDir dist && node dist/app.js"
+  },
+  "name": "3.basics",
+  "version": "1.0.0",
+  "description": "learnign NODE again",
+  "main": "dist/app.js",
+  "author": "",
+  "license": "ISC"
+}
