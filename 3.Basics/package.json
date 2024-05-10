@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "build": "tsc --outDir dist",
-    "dev": "nodemon dist/app.js"
+    "build": "tsc --outDir dist && mkdirp -p dist/views && cp -r views dist && mkdirp -p dist/public && cp -r public/* dist/public",
+    "start": "nodemon dist/app.js"
   },
   "name": "3.basics",
   "version": "1.0.0",
@@ -10,6 +10,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "nodemon": "^3.1.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2"
   }
 }
