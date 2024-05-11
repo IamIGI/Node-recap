@@ -2,8 +2,9 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
 
-import shopRoutes from './routes/shop';
-import admin from './routes/admin';
+import shopRoutes from './routes/shop.route';
+import adminRoutes from './routes/admin.route';
+import errorController from './controllers/error.controller';
 
 const app = express();
 
@@ -20,11 +21,9 @@ app.use(express.json());
 //Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/admin', admin.router);
+app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
-app.use((req, res, next) => {
-  res.status(404).render('404', { pageTitle: 'Page Not Found' });
-});
+app.use(errorController.get404page);
 
 app.listen(3000);
