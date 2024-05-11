@@ -10,6 +10,7 @@ const shop_route_1 = __importDefault(require("./routes/shop.route"));
 const admin_route_1 = __importDefault(require("./routes/admin.route"));
 const error_controller_1 = __importDefault(require("./controllers/error.controller"));
 const app = (0, express_1.default)();
+//----------Controllers----------
 //View engine
 //https://ejs.co/
 app.set('view engine', 'ejs');
@@ -19,6 +20,7 @@ app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
 //Serve static files
 app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
+//---------Routes
 app.use('/admin', admin_route_1.default);
 app.use(shop_route_1.default);
 app.use(error_controller_1.default.get404page);
