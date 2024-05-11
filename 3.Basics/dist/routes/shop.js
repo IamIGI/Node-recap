@@ -4,10 +4,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const path_1 = __importDefault(require("path"));
-const path_2 = __importDefault(require("../util/path"));
+const admin_1 = __importDefault(require("./admin"));
 const router = express_1.default.Router();
+const adminData = admin_1.default;
 router.get('/', (req, res, next) => {
-    res.sendFile(path_1.default.join(path_2.default, 'views', 'shop.html'));
+    const products = adminData.products;
+    res.render('shop', {
+        prods: products,
+        pageTitle: 'Shop',
+        path: '/',
+        hasProducts: products.length > 0,
+        activeShop: true,
+        productCSS: true,
+    });
 });
 exports.default = router;

@@ -77,3 +77,8 @@ ehthumbs.db
 # WebStorm
 *.iml
 .idea/
+
+# dist
+.dist
+**/dist/
+dist/
