@@ -1,11 +1,11 @@
 import express from 'express';
-
-import productsController from '../controllers/products.controller';
+import adminController from '../controllers/admin.controller';
 
 const router = express.Router();
 
 // do not execute, just pass reference to controller
-router.get('/add-product', productsController.getAddProduct);
-router.post('/add-product', productsController.postAddProduct);
+router.get('/add-product', adminController.getAddProduct);
+router.post('/add-product', adminController.postAddProduct);
+router.get('/products', adminController.getProducts);
 
 export default router;
