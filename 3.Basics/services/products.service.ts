@@ -1,49 +1,46 @@
-import fs from 'fs';
-import path from 'path';
 import { PostAddProductRequest, Product } from '../models/product.model';
 import { v4 as uuidv4 } from 'uuid';
-import cartService from './cart.service';
-
-const p = path.join(
-  path.dirname(require.main?.filename ?? ''),
-  'data',
-  'products.json'
-);
+import dbUtil from '../util/db.util';
+import { FieldPacket } from 'mysql2';
 
 async function save(newProduct: PostAddProductRequest) {
-  const products = await fetchAll();
+  const { title, price, imageUrl, description } = newProduct;
+  const id = uuidv4();
+  return dbUtil.connect.execute(
+    `Insert into products (id, title, imageUrl, description, price) values (?, ?, ?, ?, ?)`,
+    [id, title, imageUrl, description, price]
+  );
 
-  if (!newProduct.id) {
-    products.push({ ...newProduct, id: uuidv4() });
-  } else {
-    const existingProductIndex = products.findIndex(
-      (prod) => prod.id === newProduct.id
-    );
+  // const products = await fetchAll();
 
-    if (existingProductIndex !== -1) {
-      products[existingProductIndex] = newProduct as Product;
-    }
-  }
+  // if (!newProduct.id) {
+  //   products.push({ ...newProduct, id: uuidv4() });
+  // } else {
+  //   const existingProductIndex = products.findIndex(
+  //     (prod) => prod.id === newProduct.id
+  //   );
 
-  fs.writeFile(p, JSON.stringify(products), (err) => console.log(err));
+  //   if (existingProductIndex !== -1) {
+  //     products[existingProductIndex] = newProduct as Product;
+  //   }
+  // }
 }
 
-async function fetchAll(): Promise<Product[]> {
-  if (!fs.existsSync(p)) {
-    fs.writeFileSync(p, '[]', 'utf8');
-    return [];
-  }
+async function fetchAll() {
+  const [products, fieldData] = (await dbUtil.connect.execute(
+    'select * from products'
+  )) as [Product[], FieldPacket[]];
 
-  const fileContent = await fs.promises.readFile(p, 'utf8');
-
-  if (fileContent) return JSON.parse(fileContent) as Product[];
-  return [];
+  return products;
 }
 
 async function findById(id: string): Promise<Product | undefined> {
-  const products = await fetchAll();
+  const [product, fieldData] = (await dbUtil.connect.execute(
+    'select * from products where id = ?',
+    [id]
+  )) as unknown as [Product[], FieldPacket[]];
 
-  return products.find((product) => product.id === id);
+  return product[0];
 }
 
 async function deleteById(id: string) {
@@ -55,12 +52,6 @@ async function deleteById(id: string) {
     return;
   }
   const updatedArrProducts = products.filter((prod) => prod.id !== id);
-  fs.writeFile(p, JSON.stringify(updatedArrProducts), async (err) => {
-    console.log(err);
-    if (!err) {
-      await cartService.deleteProduct(id, product.price);
-    }
-  });
 }
 
 export default {

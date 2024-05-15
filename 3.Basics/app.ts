@@ -5,6 +5,7 @@ import path from 'path';
 import shopRoutes from './routes/shop.route';
 import adminRoutes from './routes/admin.route';
 import errorController from './controllers/error.controller';
+import database from './util/db.util';
 
 const app = express();
 
