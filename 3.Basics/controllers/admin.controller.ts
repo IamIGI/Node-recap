@@ -13,8 +13,11 @@ const getAddProduct = (req: Request, res: Response, next: NextFunction) => {
 const postAddProduct = (req: Request, res: Response, next: NextFunction) => {
   const { id, title, imageUrl, price, description } =
     req.body as PostAddProductRequest;
-  productsService.save({ id, title, imageUrl, price, description });
-  res.redirect('/');
+
+  productsService
+    .save({ id, title, imageUrl, price, description })
+    .then(() => res.redirect('/'))
+    .catch((err) => console.log(err));
 };
 
 const getEditProduct = async (

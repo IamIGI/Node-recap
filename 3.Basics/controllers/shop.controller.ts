@@ -16,9 +16,16 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
 const getProduct = async (req: Request, res: Response, next: NextFunction) => {
   const prodId = req.params.productId;
   const product = await productsService.findById(prodId);
+
+  if (!product) {
+    console.error('Product could not be found: ' + prodId);
+    res.redirect('/');
+    return;
+  }
+
   res.render('shop/product-detail', {
     product: product,
-    pageTitle: `${product?.title}`,
+    pageTitle: `${product.title}`,
     path: '/products',
   });
 };

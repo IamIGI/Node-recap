@@ -51,6 +51,7 @@ async function addProduct(newProduct: Product) {
 async function deleteProduct(id: string, productPrice: number) {
   const cart = await fetchAll();
   if (cart.products.length === 0) return;
+
   const updatedCart = { ...cart };
   const product = updatedCart.products.find(
     (prod) => prod.productData.id === id
