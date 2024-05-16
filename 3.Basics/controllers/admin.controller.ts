@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
+import { PostAddProductRequest } from '../models/product.model';
 import productsService from '../services/products.service';
-import { PostAddProductRequest, Product } from '../models/product.model';
 
 const getAddProduct = (req: Request, res: Response, next: NextFunction) => {
   res.render('admin/edit-product', {
@@ -10,14 +10,16 @@ const getAddProduct = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-const postAddProduct = (req: Request, res: Response, next: NextFunction) => {
-  const { id, title, imageUrl, price, description } =
+const postAddProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { title, imageUrl, price, description } =
     req.body as PostAddProductRequest;
 
-  productsService
-    .save({ id, title, imageUrl, price, description })
-    .then(() => res.redirect('/'))
-    .catch((err) => console.log(err));
+  await productsService.addProduct({ title, imageUrl, price, description });
+  res.redirect('/admin/products');
 };
 
 const getEditProduct = async (
@@ -29,11 +31,11 @@ const getEditProduct = async (
   if (!editMode) return res.redirect('/');
 
   const prodId = req.params.productId as string;
-  const product = await productsService.findById(prodId);
+  const product = await productsService.getProductById(prodId);
 
   if (!product) {
     console.error(`Product could not be found, prodId ${prodId}`);
-    return res.redirect('/');
+    return res.redirect('/admin/products');
   }
 
   res.render('admin/edit-product', {
@@ -51,20 +53,21 @@ const postEditProduct = async (
 ) => {
   console.log('postEditProduct');
   const { productId, title, price, imageUrl, description } = req.body;
-  const updatedProduct: Product = {
+
+  await productsService.updateProduct({
     id: productId,
     title,
     price,
     imageUrl,
     description,
-  };
-  console.log(updatedProduct);
-  await productsService.save(updatedProduct);
+  });
+
   res.redirect('/admin/products');
 };
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
-  const products = await productsService.fetchAll();
+  const products = await productsService.getProducts();
+
   res.render('admin/products', {
     prods: products,
     pageTitle: 'Admin Products',
@@ -80,7 +83,9 @@ const postDeleteProduct = async (
   console.log(req.body);
   const prodId = req.body.productId;
   console.log(prodId);
-  await productsService.deleteById(prodId);
+
+  await productsService.destroyProductById(prodId);
+
   res.redirect('/admin/products');
 };
 

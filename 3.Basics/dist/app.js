@@ -9,6 +9,7 @@ const path_1 = __importDefault(require("path"));
 const shop_route_1 = __importDefault(require("./routes/shop.route"));
 const admin_route_1 = __importDefault(require("./routes/admin.route"));
 const error_controller_1 = __importDefault(require("./controllers/error.controller"));
+const product_model_1 = __importDefault(require("./models/product.model"));
 const app = (0, express_1.default)();
 //----------Controllers----------
 //View engine
@@ -24,4 +25,10 @@ app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
 app.use('/admin', admin_route_1.default);
 app.use(shop_route_1.default);
 app.use(error_controller_1.default.get404page);
-app.listen(3000);
+//TODO:  I need to create file 'DbSync'
+product_model_1.default.sync()
+    .then((result) => {
+    // console.log(result);
+    app.listen(3000);
+})
+    .catch((err) => console.log(err));

@@ -5,7 +5,8 @@ import path from 'path';
 import shopRoutes from './routes/shop.route';
 import adminRoutes from './routes/admin.route';
 import errorController from './controllers/error.controller';
-import database from './util/db.util';
+import { sequelize } from './util/db.util';
+import ProductModel from './models/product.model';
 
 const app = express();
 
@@ -25,4 +26,10 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(errorController.get404page);
 
-app.listen(3000);
+//TODO:  I need to create file 'DbSync'
+ProductModel.sync()
+  .then((result) => {
+    // console.log(result);
+    app.listen(3000);
+  })
+  .catch((err) => console.log(err));
