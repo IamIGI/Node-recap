@@ -1,5 +1,15 @@
-import { DataTypes, Model } from 'sequelize';
+import {
+  CreationOptional,
+  DataTypes,
+  ForeignKey,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  UUID,
+  UUIDV4,
+} from 'sequelize';
 import { sequelize } from '../util/db.util';
+import UserModel from './user.model';
 export interface PostAddProductRequest {
   title: string;
   imageUrl: string;
@@ -15,17 +25,17 @@ export interface Product {
   price: number;
 }
 
-interface ProductCreationAttributes extends Product {}
+class ProductModel extends Model<
+  InferAttributes<ProductModel>,
+  InferCreationAttributes<ProductModel>
+> {
+  declare id: CreationOptional<string>;
+  declare title: string;
+  declare price: number;
+  declare imageUrl: string;
+  declare description: string;
 
-class ProductModel
-  extends Model<Product, ProductCreationAttributes>
-  implements Product
-{
-  public id!: string;
-  public title!: string;
-  public price!: number;
-  public imageUrl!: string;
-  public description!: string;
+  declare userId: ForeignKey<UserModel['id']>;
 
   // Add any additional methods or static properties here if needed
 }
@@ -33,7 +43,8 @@ class ProductModel
 ProductModel.init(
   {
     id: {
-      type: DataTypes.STRING,
+      type: UUID,
+      defaultValue: UUIDV4,
       allowNull: false,
       primaryKey: true,
     },
@@ -44,6 +55,7 @@ ProductModel.init(
   },
   {
     sequelize, // Pass your Sequelize instance
+    tableName: 'Products',
     modelName: 'Product', // Name of the model
   }
 );

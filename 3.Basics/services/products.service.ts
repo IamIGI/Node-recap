@@ -2,7 +2,7 @@ import ProductModel, {
   PostAddProductRequest,
   Product,
 } from '../models/product.model';
-import { v4 as uuidv4 } from 'uuid';
+import UserModel from '../models/user.model';
 
 async function getProducts(): Promise<Product[]> {
   const productsModel = await ProductModel.findAll();
@@ -16,11 +16,14 @@ async function getProductById(id: string): Promise<Product> {
   return productsModel[0].dataValues;
 }
 
-async function addProduct(product: PostAddProductRequest) {
+async function addProduct(
+  product: PostAddProductRequest,
+  userModel: UserModel
+) {
   const { title, imageUrl, price, description } = product;
   try {
-    await ProductModel.create({
-      id: uuidv4(),
+    //create product with assigning it to the user
+    const createdProduct = await userModel.createProduct({
       title,
       imageUrl,
       price,
