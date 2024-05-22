@@ -99,7 +99,7 @@ const postCartDeleteProduct = async (
   const prodId = req.body.productId;
   const product = await productsService.getProductById(prodId);
   if (product) {
-    await cartService.deleteProduct(prodId, product.price);
+    await cartService.deleteProduct(prodId, Number(product.price.toString()));
     res.redirect('/cart');
   }
 };

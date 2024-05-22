@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { Cart, CartProductItem } from '../models/cart.model';
-import { Product } from '../models/product.model';
+import { Product } from '@prisma/client';
 
 const p = path.join(
   path.dirname(require.main?.filename ?? ''),

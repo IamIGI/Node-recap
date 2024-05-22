@@ -1,12 +1,12 @@
+import { User } from '@prisma/client';
 import { Request } from 'express';
-import UserModel, { User } from './user.model';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user: UserModel;
+    user: User;
   }
 }
 
 export interface IUserRequest extends Request {
-  user: UserModel;
+  user: User;
 }

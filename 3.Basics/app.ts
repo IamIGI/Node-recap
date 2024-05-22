@@ -4,11 +4,10 @@ import path from 'path';
 import shopRoutes from './routes/shop.route';
 import adminRoutes from './routes/admin.route';
 import errorController from './controllers/error.controller';
-import { sequelize } from './util/db.util';
-import ProductModel from './models/product.model';
-import UserModel from './models/user.model';
-import userService from './services/user.service';
+
 import { IUserRequest } from './models/Request.model';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 const app = express();
 
@@ -23,14 +22,22 @@ app.use(express.json());
 //Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req: IUserRequest, res: Response, next: NextFunction) => {
-  UserModel.findAll({ where: { id: '62cfd4b9-9592-4c0b-9f20-20f65d65e720' } })
-    .then((user) => {
-      console.log(user);
-      req.user = user[0] as UserModel;
-      next();
-    })
-    .catch((e) => console.log(e));
+app.use(async (req: IUserRequest, res: Response, next: NextFunction) => {
+  let users = await prisma.user.findMany({
+    where: { id: '4b46fcca-a09e-455f-b23b-08e1c0e1cf12' },
+  });
+
+  if (users.length === 0 || !users) {
+    users[0] = await prisma.user.create({
+      data: {
+        name: 'Igor',
+        email: 'igorEmail@gmail.com', //remember that email has to be unique
+      },
+    });
+    console.log('User created: ', users[0].id);
+  }
+  req.user = users[0];
+  next();
 });
 
 //---------Routes----
@@ -38,30 +45,21 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(errorController.get404page);
 
-//TODO: move to separated file
-//----------SQL config--------
-UserModel.hasMany(ProductModel, {
-  sourceKey: 'id',
-  foreignKey: 'userId',
-  as: 'products',
-});
+async function startServer() {
+  try {
+    // Connect to the database
+    await prisma.$connect();
+    console.log('Connected to the database');
 
-sequelize
-  .sync({ alter: true })
-  .then((result) => {
-    return UserModel.findAll();
-  })
-  .then((user) => {
-    if (user.length === 0) {
-      console.log('Creating new user');
-      return userService.addUser({
-        name: 'Igor',
-        email: 'igorigi1998@gmail.om',
-      });
-    }
-  })
-  .then((user) => {
-    // console.log(user);
-    app.listen(3000);
-  })
-  .catch((err) => console.log(err));
+    // Start the server
+    app.listen(3000, () => {
+      console.log('Server is running on port 3000');
+    });
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+    // Ensure to handle the error appropriately
+    // For example, exit the application or retry connecting
+  }
+}
+
+startServer();

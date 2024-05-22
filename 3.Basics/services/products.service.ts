@@ -1,52 +1,65 @@
-import ProductModel, {
-  PostAddProductRequest,
-  Product,
-} from '../models/product.model';
-import UserModel from '../models/user.model';
+import { Product } from '@prisma/client';
+import { error } from 'console';
+
+import { PrismaClient, User } from '@prisma/client';
+import { AddProduct, UpdateProduct } from '../models/product.model';
+const prisma = new PrismaClient();
 
 async function getProducts(): Promise<Product[]> {
-  const productsModel = await ProductModel.findAll();
+  const products = await prisma.product.findMany();
 
-  return productsModel.map((productItem) => productItem.dataValues);
+  return products;
 }
 
 async function getProductById(id: string): Promise<Product> {
-  const productsModel = await ProductModel.findAll({ where: { id } });
-
-  return productsModel[0].dataValues;
+  const products = await prisma.product.findMany({ where: { id } });
+  if (products.length === 0)
+    throw error('Product with given id do not exists, id: ', id);
+  return products[0];
 }
 
 async function addProduct(
-  product: PostAddProductRequest,
-  userModel: UserModel
-) {
+  product: AddProduct,
+  user: User
+): Promise<Product | undefined> {
   const { title, imageUrl, price, description } = product;
   try {
-    //create product with assigning it to the user
-    const createdProduct = await userModel.createProduct({
-      title,
-      imageUrl,
-      price,
-      description,
+    const newProduct = await prisma.product.create({
+      data: {
+        title,
+        imageUrl,
+        price,
+        description,
+        user: { connect: { id: user.id } },
+      },
     });
+
+    return newProduct;
   } catch (e) {
     console.error(e);
   }
 }
 
-async function updateProduct(product: Product) {
+async function updateProduct(
+  product: UpdateProduct
+): Promise<Product | undefined> {
   try {
-    (await ProductModel.findAll({ where: { id: product.id } }))[0].update(
-      product
-    );
+    const updatedProduct = await prisma.product.update({
+      where: { id: product.id },
+      data: product,
+    });
+
+    return updatedProduct;
   } catch (e) {
     console.error(e);
   }
 }
 
-async function destroyProductById(id: string) {
+async function destroyProductById(id: string): Promise<Product | undefined> {
   try {
-    (await ProductModel.findAll({ where: { id } }))[0].destroy();
+    const product = await prisma.product.delete({ where: { id } });
+
+    return product;
   } catch (e) {
     console.error(e);
   }

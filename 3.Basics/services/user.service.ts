@@ -1,20 +1,25 @@
-import UserModel, { AddUser, User } from '../models/user.model';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaClient, User } from '@prisma/client';
+import { AddUser } from '../models/user.model';
+const prisma = new PrismaClient();
 
 async function getUsers() {
-  const usersModels = await UserModel.findAll();
-  return usersModels.map((userItem) => userItem.dataValues);
+  const users = await prisma.user.findFirstOrThrow();
+
+  return users;
 }
 
-async function addUser(user: AddUser) {
+async function addUser(user: AddUser): Promise<User | undefined> {
   const { name, email } = user;
-  console.log(user);
+
   try {
-    return await UserModel.create({
-      id: uuidv4(),
-      name,
-      email,
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+      },
     });
+
+    return newUser;
   } catch (e) {
     console.error(e);
   }
