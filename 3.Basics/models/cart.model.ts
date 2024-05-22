@@ -1,4 +1,4 @@
-import { Product } from './product.model';
+import { Product } from '@prisma/client';
 
 export interface CartProductItem {
   productData: Product;

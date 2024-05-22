@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-
 import productsService from '../services/products.service';
 import { IUserRequest } from '../models/Request.model';
-import { PostAddProductRequest } from '../models/product.model';
+import { AddProduct } from '../models/product.model';
 
 const getAddProduct = (req: Request, res: Response, next: NextFunction) => {
   res.render('admin/edit-product', {
@@ -17,9 +16,8 @@ const postAddProduct = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { title, imageUrl, price, description } =
-    req.body as PostAddProductRequest;
-  const userModel = req.user;
+  const { title, imageUrl, price, description } = req.body as AddProduct;
+  const user = req.user;
 
   await productsService.addProduct(
     {
@@ -28,7 +26,7 @@ const postAddProduct = async (
       price,
       description,
     },
-    userModel
+    user
   );
   res.redirect('/admin/products');
 };
@@ -64,7 +62,6 @@ const postEditProduct = async (
 ) => {
   console.log('postEditProduct');
   const { productId, title, price, imageUrl, description } = req.body;
-  const userId = req.user.id;
 
   await productsService.updateProduct({
     id: productId,
