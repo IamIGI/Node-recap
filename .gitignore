@@ -7,6 +7,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Ignore Prisma migrations
+prisma/migrations/
+
 # Runtime data
 pids
 *.pid
