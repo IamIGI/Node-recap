@@ -1,30 +1,5 @@
-// import path from 'path';
-// import fs from 'fs';
-import { connect } from 'http2';
-import { CartProductItem } from '../models/cart.model';
-
-import { PrismaClient, Product, User } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 const prisma = new PrismaClient();
-
-// const p = path.join(
-//   path.dirname(require.main?.filename ?? ''),
-//   'data',
-//   'cart.json'
-// );
-
-// const intiData = { products: [], totalPrice: 0 };
-
-// async function fetchAll(): Promise<Cart> {
-//   if (!fs.existsSync(p)) {
-//     fs.writeFileSync(p, '[]', 'utf8');
-//     return intiData;
-//   }
-
-//   const fileContent = await fs.promises.readFile(p, 'utf8');
-
-//   if (fileContent) return JSON.parse(fileContent) as Cart;
-//   return intiData;
-// }
 
 async function getCart(user: User) {
   const cartItems = await prisma.cartItem.findMany({
@@ -39,8 +14,6 @@ async function addProduct(prodId: string, user: User, quantity: number) {
   try {
     const product = await prisma.product.findFirst({ where: { id: prodId } });
     if (!product) throw new Error('Given product do not exists');
-
-    //TODO: check for cartItem in cart, if exists, increase quantity
 
     const productExists = await prisma.cartItem.findFirst({
       where: { AND: [{ userId: user.id }, { productId: prodId }] },
