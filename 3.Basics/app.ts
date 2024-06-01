@@ -23,21 +23,30 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(async (req: IUserRequest, res: Response, next: NextFunction) => {
-  let users = await prisma.user.findMany({
-    where: { id: '4b46fcca-a09e-455f-b23b-08e1c0e1cf12' },
-  });
+  try {
+    console.log('Check for user init test data');
 
-  if (users.length === 0 || !users) {
-    users[0] = await prisma.user.create({
-      data: {
-        name: 'Igor',
-        email: 'igorEmail@gmail.com', //remember that email has to be unique
-      },
+    let users = await prisma.user.findMany({
+      where: { id: '4b46fcca-a09e-455f-b23b-08e1c0e1cf12' },
     });
-    console.log('User created: ', users[0].id);
+
+    //Create user if not exists
+    if (users.length === 0 || !users) {
+      users[0] = await prisma.user.create({
+        data: {
+          name: 'Igor',
+          email: 'igorEmail@gmail.com', //remember that email has to be unique
+        },
+      });
+    }
+    const user = users[0];
+
+    req.user = user;
+    console.log('-------User object created successfully------');
+    next();
+  } catch (error) {
+    console.log(error);
   }
-  req.user = users[0];
-  next();
 });
 
 //---------Routes----

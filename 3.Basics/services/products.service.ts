@@ -1,8 +1,8 @@
 import { Product } from '@prisma/client';
 import { error } from 'console';
+import { AddProduct, UpdateProduct } from '../models/product.model';
 
 import { PrismaClient, User } from '@prisma/client';
-import { AddProduct, UpdateProduct } from '../models/product.model';
 const prisma = new PrismaClient();
 
 async function getProducts(): Promise<Product[]> {

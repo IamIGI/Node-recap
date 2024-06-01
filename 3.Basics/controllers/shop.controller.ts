@@ -45,20 +45,12 @@ const getIndex = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getCart = async (req: Request, res: Response, next: NextFunction) => {
-  const cart = await cartService.getCart();
-  const products = await productsService.getProducts();
-  const cartProducts: CartProductItem[] = [];
+  const user = req.user;
+  const cart = await cartService.getCart(user);
 
-  if (cart && products.length > 0) {
-    products.forEach((productItem) => {
-      const cartProduct = cart.products.find(
-        (prod) => prod.productData.id === productItem.id
-      );
-      if (cartProduct) {
-        cartProducts.push({ productData: productItem, qty: cartProduct.qty });
-      }
-    });
-  }
+  const cartProducts: CartProductItem[] = cart.map((cartItem) => {
+    return { productData: cartItem.product, qty: cartItem.quantity };
+  });
 
   res.render('shop/cart', {
     path: '/cart',
@@ -69,10 +61,10 @@ const getCart = async (req: Request, res: Response, next: NextFunction) => {
 
 const postCart = async (req: Request, res: Response, next: NextFunction) => {
   const prodId = req.body.productId;
-
-  const product = await productsService.getProductById(prodId);
-
-  if (product) await cartService.addProduct(product);
+  const user = req.user;
+  //TODO: change hard coded quantity
+  const cart = await cartService.addProduct(prodId, user, 1);
+  console.log(cart);
 
   res.redirect('/cart');
 };
@@ -97,11 +89,10 @@ const postCartDeleteProduct = async (
   next: NextFunction
 ) => {
   const prodId = req.body.productId;
-  const product = await productsService.getProductById(prodId);
-  if (product) {
-    await cartService.deleteProduct(prodId, Number(product.price.toString()));
-    res.redirect('/cart');
-  }
+  const user = req.user;
+
+  await cartService.deleteProduct(prodId, user);
+  res.redirect('/cart');
 };
 
 export default {
