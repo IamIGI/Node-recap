@@ -5,7 +5,7 @@ export interface CartProductItem {
   qty: number;
 }
 
-export interface Cart {
-  products: CartProductItem[];
-  totalPrice: number;
-}
+// export interface Cart {
+//   products: CartProductItem[];
+//   totalPrice: number;
+// }

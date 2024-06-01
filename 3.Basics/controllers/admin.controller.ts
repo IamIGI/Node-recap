@@ -3,6 +3,21 @@ import productsService from '../services/products.service';
 import { IUserRequest } from '../models/Request.model';
 import { AddProduct } from '../models/product.model';
 
+const getProducts = async (
+  req: IUserRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+  const products = await productsService.getProductsByUserId(user);
+
+  res.render('admin/products', {
+    prods: products,
+    pageTitle: 'Admin Products',
+    path: '/admin/products',
+  });
+};
+
 const getAddProduct = (req: Request, res: Response, next: NextFunction) => {
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
@@ -72,21 +87,6 @@ const postEditProduct = async (
   });
 
   res.redirect('/admin/products');
-};
-
-const getProducts = async (
-  req: IUserRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  const user = req.user;
-  const products = await productsService.getProductsByUserId(user);
-
-  res.render('admin/products', {
-    prods: products,
-    pageTitle: 'Admin Products',
-    path: '/admin/products',
-  });
 };
 
 const postDeleteProduct = async (

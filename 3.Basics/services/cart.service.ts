@@ -1,81 +1,110 @@
-import path from 'path';
-import fs from 'fs';
-import { Cart, CartProductItem } from '../models/cart.model';
-import { Product } from '@prisma/client';
+// import path from 'path';
+// import fs from 'fs';
+import { connect } from 'http2';
+import { CartProductItem } from '../models/cart.model';
 
-const p = path.join(
-  path.dirname(require.main?.filename ?? ''),
-  'data',
-  'cart.json'
-);
+import { PrismaClient, Product, User } from '@prisma/client';
+const prisma = new PrismaClient();
 
-const intiData = { products: [], totalPrice: 0 };
+// const p = path.join(
+//   path.dirname(require.main?.filename ?? ''),
+//   'data',
+//   'cart.json'
+// );
 
-async function fetchAll(): Promise<Cart> {
-  if (!fs.existsSync(p)) {
-    fs.writeFileSync(p, '[]', 'utf8');
-    return intiData;
+// const intiData = { products: [], totalPrice: 0 };
+
+// async function fetchAll(): Promise<Cart> {
+//   if (!fs.existsSync(p)) {
+//     fs.writeFileSync(p, '[]', 'utf8');
+//     return intiData;
+//   }
+
+//   const fileContent = await fs.promises.readFile(p, 'utf8');
+
+//   if (fileContent) return JSON.parse(fileContent) as Cart;
+//   return intiData;
+// }
+
+async function getCart(user: User) {
+  const cartItems = await prisma.cartItem.findMany({
+    where: { userId: user.id },
+    include: { product: true },
+  });
+  console.log('Returning items for given Cart');
+  return cartItems;
+}
+
+async function addProduct(prodId: string, user: User, quantity: number) {
+  try {
+    const product = await prisma.product.findFirst({ where: { id: prodId } });
+    if (!product) throw new Error('Given product do not exists');
+
+    //TODO: check for cartItem in cart, if exists, increase quantity
+
+    const productExists = await prisma.cartItem.findFirst({
+      where: { AND: [{ userId: user.id }, { productId: prodId }] },
+    });
+
+    if (productExists) {
+      const newQuantity = productExists.quantity + quantity;
+
+      await prisma.cartItem.update({
+        where: { id: productExists.id },
+        data: { quantity: newQuantity },
+      });
+    } else {
+      //add new product to cart
+      await prisma.cartItem.create({
+        data: {
+          quantity,
+          product: {
+            connect: { id: product.id },
+          },
+          user: {
+            connect: { id: user.id },
+          },
+        },
+      });
+    }
+
+    return await getCart(user);
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+async function deleteProduct(id: string, user: User) {
+  //TODO: we do not update price yet
+  const product = await prisma.product.findFirst({ where: { id } });
+  let cart = await getCart(user);
+
+  if (cart.length === 0)
+    throw new Error('Could not delete product, cart is empty already: ' + id);
+  if (!product)
+    throw new Error(
+      'Could not find given product while deleting from cart: ' + id
+    );
+
+  try {
+    await prisma.cartItem.findFirst({
+      where: { AND: [{ userId: user.id }, { productId: id }] },
+    });
+
+    await prisma.cartItem.delete({
+      where: { productId: id, userId: user.id },
+    });
+
+    cart = cart.filter((cartItem) => cartItem.productId !== id);
+  } catch (e) {
+    console.log(e);
   }
 
-  const fileContent = await fs.promises.readFile(p, 'utf8');
-
-  if (fileContent) return JSON.parse(fileContent) as Cart;
-  return intiData;
+  return cart;
 }
 
-async function addProduct(newProduct: Product) {
-  const cart = await fetchAll();
-
-  const existingProductIndex = cart.products.findIndex(
-    (cartItem) => cartItem.productData.id === newProduct.id
-  );
-
-  const existingProduct = cart.products[existingProductIndex];
-
-  let updatedProduct: CartProductItem;
-  if (existingProduct) {
-    updatedProduct = { ...existingProduct };
-    updatedProduct.qty += 1;
-    cart.products = [...cart.products];
-    cart.products[existingProductIndex] = updatedProduct;
-  } else {
-    updatedProduct = { productData: newProduct, qty: 1 };
-    cart.products = [...cart.products, updatedProduct];
-  }
-
-  cart.totalPrice += Number(newProduct.price);
-
-  fs.writeFile(p, JSON.stringify(cart), (err) => console.log(err));
-}
-
-async function deleteProduct(id: string, productPrice: number) {
-  const cart = await fetchAll();
-  if (cart.products.length === 0) return;
-
-  const updatedCart = { ...cart };
-  const product = updatedCart.products.find(
-    (prod) => prod.productData.id === id
-  );
-
-  if (!product) {
-    console.error('Product not found in cart:' + id);
-    return;
-  }
-
-  const productQty = product.qty;
-
-  updatedCart.totalPrice = updatedCart.totalPrice - productPrice * productQty;
-  updatedCart.products = updatedCart.products.filter(
-    (prod) => prod.productData.id !== id
-  );
-
-  fs.writeFile(p, JSON.stringify(updatedCart), (err) => console.log(err));
-}
-
-async function getCart() {
-  const cartProducts = await fetchAll();
-  if (cartProducts.products.length === 0) return null;
-  return cartProducts;
-}
-
-export default { addProduct, deleteProduct, getCart };
+export default {
+  addProduct,
+  deleteProduct,
+  getCart,
+};

@@ -1,7 +1,9 @@
 {
   "scripts": {
     "build": "tsc --outDir dist && mkdirp -p dist/views && cp -r views dist && mkdirp -p dist/public && cp -r public/* dist/public && mkdirp -p dist/data ",
-    "start": "nodemon dist/app.js"
+    "start": "nodemon dist/app.js",
+    "migrate": "npx prisma migrate dev",
+    "generate": "npx prisma generate"
   },
   "name": "3.basics",
   "version": "1.0.0",
