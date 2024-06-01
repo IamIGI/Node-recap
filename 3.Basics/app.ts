@@ -57,6 +57,7 @@ async function startServer() {
     });
   } catch (error) {
     console.error('Error connecting to the database:', error);
+    await prisma.$disconnect();
     // Ensure to handle the error appropriately
     // For example, exit the application or retry connecting
   }

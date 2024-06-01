@@ -10,14 +10,23 @@ async function getProducts(): Promise<Product[]> {
 
   return products;
 }
+async function getProductsByUserId(user: User): Promise<Product[]> {
+  const products = await prisma.product.findMany({
+    where: { userId: user.id },
+  });
+
+  return products;
+}
 
 async function getProductById(id: string): Promise<Product> {
   const products = await prisma.product.findMany({ where: { id } });
+
   if (products.length === 0)
     throw error('Product with given id do not exists, id: ', id);
   return products[0];
 }
 
+/**Add product by user */
 async function addProduct(
   product: AddProduct,
   user: User
@@ -67,6 +76,7 @@ async function destroyProductById(id: string): Promise<Product | undefined> {
 
 export default {
   getProducts,
+  getProductsByUserId,
   getProductById,
   addProduct,
   updateProduct,
