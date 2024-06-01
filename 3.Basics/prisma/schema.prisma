@@ -21,6 +21,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   productsCreatedByUser Product[] @relation("ProductsCreatedByUser")
+
+  // #.1 One to one with User-Cart
+  //User could exists without assigned cart
+  cart Cart?
 }
 
 model Product {
@@ -31,6 +35,38 @@ model Product {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  user        User     @relation(name: "ProductsCreatedByUser", fields: [userId], references: [id])
-  userId      String
+
+  user   User   @relation(name: "ProductsCreatedByUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  //#.2 Product could exists without assigned cartItem
+  cartItem CartItem?
+}
+
+model Cart {
+  id String @id @default(uuid())
+
+  // #.1 One to one with User-Cart
+  //Cart have to be always connected to the user
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartItems CartItem[] @relation(name: "CartItems")
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // #.2 One to One, CartItem have to be always connected to the product
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String  @unique
+
+  cart   Cart   @relation(name: "CartItems", fields: [cartId], references: [id], onDelete: Cascade)
+  cartId String
 }

@@ -74,8 +74,13 @@ const postEditProduct = async (
   res.redirect('/admin/products');
 };
 
-const getProducts = async (req: Request, res: Response, next: NextFunction) => {
-  const products = await productsService.getProducts();
+const getProducts = async (
+  req: IUserRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+  const products = await productsService.getProductsByUserId(user);
 
   res.render('admin/products', {
     prods: products,
