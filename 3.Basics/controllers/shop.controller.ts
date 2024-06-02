@@ -2,8 +2,9 @@ import { NextFunction } from 'express';
 import { Request, Response } from 'express';
 
 import cartService from '../services/cart.service';
-import { CartProductItem } from '../models/cart.model';
+import { CartProductItemForFrontend } from '../models/cart.model';
 import productsService from '../services/products.service';
+import orderService from '../services/order.service';
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   const products = await productsService.getProducts();
@@ -48,8 +49,8 @@ const getCart = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user;
   const cart = await cartService.getCart(user);
 
-  const cartProducts: CartProductItem[] = cart.map((cartItem) => {
-    return { productData: cartItem.product, qty: cartItem.quantity };
+  const cartProducts: CartProductItemForFrontend[] = cart.map((cartItem) => {
+    return { ...cartItem.product, cartItem: { quantity: cartItem.quantity } };
   });
 
   res.render('shop/cart', {
@@ -70,9 +71,12 @@ const postCart = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getOrders = async (req: Request, res: Response, next: NextFunction) => {
+  const orders = await orderService.getOrders(req.user);
+
   res.render('shop/orders', {
     path: '/orders',
     pageTitle: 'Your Orders',
+    orders: orders,
   });
 };
 
@@ -95,6 +99,16 @@ const postCartDeleteProduct = async (
   res.redirect('/cart');
 };
 
+const postOrder = async (req: Request, res: Response, next: NextFunction) => {
+  const cart = await cartService.getCart(req.user);
+  console.log(cart);
+
+  await orderService.createOrder(cart);
+  await cartService.clearCart(req.user);
+
+  res.redirect('/orders');
+};
+
 export default {
   getProducts,
   getProduct,
@@ -104,4 +118,5 @@ export default {
   getCheckout,
   getOrders,
   postCartDeleteProduct,
+  postOrder,
 };

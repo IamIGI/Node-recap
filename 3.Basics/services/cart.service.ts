@@ -1,11 +1,14 @@
 import { PrismaClient, User } from '@prisma/client';
+import { CartItem } from '../models/cart.model';
+
 const prisma = new PrismaClient();
 
-async function getCart(user: User) {
+async function getCart(user: User): Promise<CartItem[]> {
   const cartItems = await prisma.cartItem.findMany({
     where: { userId: user.id },
     include: { product: true },
   });
+
   console.log('Returning items for given Cart');
   return cartItems;
 }
@@ -76,8 +79,20 @@ async function deleteProduct(id: string, user: User) {
   return cart;
 }
 
+async function clearCart(user: User) {
+  try {
+    await prisma.cartItem.deleteMany({
+      where: { userId: user.id },
+    });
+  } catch (e) {
+    console.warn('Could not clear the user cart: ' + user.id);
+    console.error(e);
+  }
+}
+
 export default {
   addProduct,
   deleteProduct,
   getCart,
+  clearCart,
 };
