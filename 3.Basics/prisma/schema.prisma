@@ -15,10 +15,11 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
-  name      String
-  email     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  name  String
+  email String
 
   productsCreatedByUser Product[] @relation("ProductsCreatedByUser")
 
@@ -26,22 +27,25 @@ model User {
   //User could exists without assigned cart
   // cart Cart?
   userCartItems CartItem[] @relation("UserCartItems")
+  userOrders    Order[]    @relation("UserOrders")
 }
 
 model Product {
-  id          String   @id @default(uuid())
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   title       String
-  price       Decimal  @db.Decimal(10, 2)
+  price       Decimal @db.Decimal(10, 2)
   imageUrl    String
   description String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
   user   User   @relation(name: "ProductsCreatedByUser", fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
   //#.2 Product could exists without assigned cartItem
-  cartItem CartItem?
+  cartItem  CartItem?
+  orderItem OrderItem[]
 }
 
 // model Cart {
@@ -60,9 +64,10 @@ model Product {
 
 model CartItem {
   id        String   @id @default(uuid())
-  quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  quantity Int
 
   // #.2 One to One, CartItem have to be always connected to the product
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -73,4 +78,27 @@ model CartItem {
 
   // cart   Cart   @relation(name: "CartItems", fields: [cartId], references: [id], onDelete: Cascade)
   // cartId String
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(name: "UserOrders", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  orderItems OrderItem[] @relation(name: "OrderItems")
+}
+
+model OrderItem {
+  id       String @id @default(uuid())
+  quantity Int
+
+  order   Order  @relation(name: "OrderItems", fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String
+
+  // #.2 One to One
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
 }

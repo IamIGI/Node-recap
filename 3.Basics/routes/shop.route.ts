@@ -13,5 +13,6 @@ router.post('/cart', shopController.postCart);
 router.get('/orders', shopController.getOrders);
 router.get('/checkout', shopController.getCheckout);
 router.post('/cart-delete-item', shopController.postCartDeleteProduct);
+router.post('/create-order', shopController.postOrder);
 
 export default router;
