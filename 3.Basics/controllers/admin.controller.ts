@@ -2,9 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 import productsService from '../services/products.service';
 
 import { AddProduct } from '../models/product.model';
+import sessionUtil from '../utils/session.util';
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
-  const user = req.user;
+  const user = sessionUtil.getUser(req);
   const products = await productsService.getProductsByUserId(user);
 
   res.render('admin/products', {
@@ -30,7 +31,7 @@ const postAddProduct = async (
   next: NextFunction
 ) => {
   const { title, imageUrl, price, description } = req.body as AddProduct;
-  const user = req.user;
+  const user = sessionUtil.getUser(req);
 
   await productsService.addProduct(
     {
@@ -93,9 +94,7 @@ const postDeleteProduct = async (
   res: Response,
   next: NextFunction
 ) => {
-  console.log(req.body);
   const prodId = req.body.productId;
-  console.log(prodId);
 
   await productsService.destroyProductById(prodId);
 

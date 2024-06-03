@@ -33,11 +33,12 @@ app.use((0, express_session_1.default)({
     resave: false,
     saveUninitialized: false,
     store: new prisma_session_store_1.PrismaSessionStore(prisma, {
-        checkPeriod: 60 * 1000, //ms - 15min
+        checkPeriod: 15 * 60 * 1000, //ms - 15min
         dbRecordIdIsSessionId: true,
         dbRecordIdFunction: undefined,
     }),
 }));
+//Fake request for dev only purpose
 app.use(async (req, res, next) => {
     try {
         console.log('Check for user init test data');
@@ -53,8 +54,6 @@ app.use(async (req, res, next) => {
                 },
             });
         }
-        const user = users[0];
-        req.user = user;
         console.log('-------User object created successfully------');
         next();
     }

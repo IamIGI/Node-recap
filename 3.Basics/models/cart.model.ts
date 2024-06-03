@@ -1,9 +1,7 @@
 import { Product } from '@prisma/client';
 
 export interface CartProductItemForFrontend extends Product {
-  cartItem: {
-    quantity: number;
-  };
+  quantity: number;
 }
 [];
 

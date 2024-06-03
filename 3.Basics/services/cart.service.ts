@@ -15,6 +15,9 @@ async function getCart(user: User): Promise<CartItem[]> {
 
 async function addProduct(prodId: string, user: User, quantity: number) {
   try {
+    console.log(prodId);
+    console.log(user);
+
     const product = await prisma.product.findFirst({ where: { id: prodId } });
     if (!product) throw new Error('Given product do not exists');
 
@@ -43,7 +46,7 @@ async function addProduct(prodId: string, user: User, quantity: number) {
         },
       });
     }
-
+    console.log('Product added to cart sucessfully');
     return await getCart(user);
   } catch (e) {
     console.log(e);

@@ -1,4 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 const getLogin = async (req: Request, res: Response, next: NextFunction) => {
   const isLoggedIn =
@@ -12,15 +15,35 @@ const getLogin = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const postLogin = async (req: Request, res: Response, next: NextFunction) => {
-  //After max-age seconds value passed, then cookie will be remove, so on next request it won't be there
-  // res.setHeader('Set-Cookie', 'loggedIn=true; Max-Age=30');
+  let user = await prisma.user.findFirst({
+    where: { id: '4b46fcca-a09e-455f-b23b-08e1c0e1cf12' },
+  });
+
+  //Temporary solution, until we do not make the login functionality
+  if (!user) {
+    console.error('User not found');
+    res.redirect('/');
+    return;
+  }
 
   //session object is added by session middleware from app.ts
+  req.session.user = user;
   req.session.isLoggedIn = true;
-  res.redirect('/');
+  req.session.save((e) => {
+    console.log(e);
+    res.redirect('/');
+  });
+};
+
+const postLogout = async (req: Request, res: Response, next: NextFunction) => {
+  req.session.destroy((err) => {
+    console.log(err);
+    res.redirect('/');
+  });
 };
 
 export default {
   getLogin,
   postLogin,
+  postLogout,
 };
