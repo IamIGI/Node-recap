@@ -3,13 +3,18 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import shopRoutes from './routes/shop.route';
 import adminRoutes from './routes/admin.route';
+import authRoutes from './routes/auth.route';
 import errorController from './controllers/error.controller';
+import session from 'express-session';
+import dotenv from 'dotenv';
 
-import { IUserRequest } from './models/Request.model';
 import { PrismaClient } from '@prisma/client';
+import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+
 const prisma = new PrismaClient();
 
 const app = express();
+dotenv.config();
 
 //----------Controllers----------
 //View engine
@@ -21,8 +26,21 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 //Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
+//Express session
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET!,
+    resave: false,
+    saveUninitialized: false,
+    store: new PrismaSessionStore(prisma, {
+      checkPeriod: 15 * 60 * 1000, //ms - 15min
+      dbRecordIdIsSessionId: true,
+      dbRecordIdFunction: undefined,
+    }),
+  })
+);
 
-app.use(async (req: IUserRequest, res: Response, next: NextFunction) => {
+app.use(async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log('Check for user init test data');
 
@@ -52,15 +70,15 @@ app.use(async (req: IUserRequest, res: Response, next: NextFunction) => {
 //---------Routes----
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
+app.use(authRoutes);
 app.use(errorController.get404page);
 
+//---------Start server--------
 async function startServer() {
   try {
-    // Connect to the database
     await prisma.$connect();
     console.log('Connected to the database');
 
-    // Start the server
     app.listen(3000, () => {
       console.log('Server is running on port 3000');
     });
