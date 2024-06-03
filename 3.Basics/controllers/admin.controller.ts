@@ -1,13 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import productsService from '../services/products.service';
-import { IUserRequest } from '../models/Request.model';
+
 import { AddProduct } from '../models/product.model';
 
-const getProducts = async (
-  req: IUserRequest,
-  res: Response,
-  next: NextFunction
-) => {
+const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user;
   const products = await productsService.getProductsByUserId(user);
 
@@ -15,6 +11,7 @@ const getProducts = async (
     prods: products,
     pageTitle: 'Admin Products',
     path: '/admin/products',
+    isAuthenticated: req.session.isLoggedIn,
   });
 };
 
@@ -23,11 +20,12 @@ const getAddProduct = (req: Request, res: Response, next: NextFunction) => {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
+    isAuthenticated: req.session.isLoggedIn,
   });
 };
 
 const postAddProduct = async (
-  req: IUserRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
@@ -67,6 +65,7 @@ const getEditProduct = async (
     path: '/admin/edit-product',
     editing: editMode,
     product: product,
+    isAuthenticated: req.session.isLoggedIn,
   });
 };
 

@@ -8,10 +8,15 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const path_1 = __importDefault(require("path"));
 const shop_route_1 = __importDefault(require("./routes/shop.route"));
 const admin_route_1 = __importDefault(require("./routes/admin.route"));
+const auth_route_1 = __importDefault(require("./routes/auth.route"));
 const error_controller_1 = __importDefault(require("./controllers/error.controller"));
+const express_session_1 = __importDefault(require("express-session"));
+const dotenv_1 = __importDefault(require("dotenv"));
 const client_1 = require("@prisma/client");
+const prisma_session_store_1 = require("@quixo3/prisma-session-store");
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
+dotenv_1.default.config();
 //----------Controllers----------
 //View engine
 //https://ejs.co/
@@ -22,6 +27,17 @@ app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
 //Serve static files
 app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
+//Express session
+app.use((0, express_session_1.default)({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: new prisma_session_store_1.PrismaSessionStore(prisma, {
+        checkPeriod: 60 * 1000, //ms - 15min
+        dbRecordIdIsSessionId: true,
+        dbRecordIdFunction: undefined,
+    }),
+}));
 app.use(async (req, res, next) => {
     try {
         console.log('Check for user init test data');
@@ -49,13 +65,13 @@ app.use(async (req, res, next) => {
 //---------Routes----
 app.use('/admin', admin_route_1.default);
 app.use(shop_route_1.default);
+app.use(auth_route_1.default);
 app.use(error_controller_1.default.get404page);
+//---------Start server--------
 async function startServer() {
     try {
-        // Connect to the database
         await prisma.$connect();
         console.log('Connected to the database');
-        // Start the server
         app.listen(3000, () => {
             console.log('Server is running on port 3000');
         });
