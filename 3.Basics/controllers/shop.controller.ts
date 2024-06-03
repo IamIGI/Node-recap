@@ -5,9 +5,11 @@ import cartService from '../services/cart.service';
 import { CartProductItemForFrontend } from '../models/cart.model';
 import productsService from '../services/products.service';
 import orderService from '../services/order.service';
+import sessionUtil from '../utils/session.util';
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   const products = await productsService.getProducts();
+
   if (!products) return;
 
   res.render('shop/product-list', {
@@ -49,11 +51,11 @@ const getIndex = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getCart = async (req: Request, res: Response, next: NextFunction) => {
-  const user = req.user;
+  const user = sessionUtil.getUser(req);
   const cart = await cartService.getCart(user);
 
   const cartProducts: CartProductItemForFrontend[] = cart.map((cartItem) => {
-    return { ...cartItem.product, cartItem: { quantity: cartItem.quantity } };
+    return { ...cartItem.product, quantity: cartItem.quantity };
   });
 
   res.render('shop/cart', {
@@ -66,16 +68,18 @@ const getCart = async (req: Request, res: Response, next: NextFunction) => {
 
 const postCart = async (req: Request, res: Response, next: NextFunction) => {
   const prodId = req.body.productId;
-  const user = req.user;
+
+  const user = sessionUtil.getUser(req);
+  console.log('add product to cart');
   //TODO: change hard coded quantity
   const cart = await cartService.addProduct(prodId, user, 1);
-  console.log(cart);
 
   res.redirect('/cart');
 };
 
 const getOrders = async (req: Request, res: Response, next: NextFunction) => {
-  const orders = await orderService.getOrders(req.user);
+  const user = sessionUtil.getUser(req);
+  const orders = await orderService.getOrders(user);
 
   res.render('shop/orders', {
     path: '/orders',
@@ -99,18 +103,18 @@ const postCartDeleteProduct = async (
   next: NextFunction
 ) => {
   const prodId = req.body.productId;
-  const user = req.user;
+  const user = sessionUtil.getUser(req);
 
   await cartService.deleteProduct(prodId, user);
   res.redirect('/cart');
 };
 
 const postOrder = async (req: Request, res: Response, next: NextFunction) => {
-  const cart = await cartService.getCart(req.user);
-  console.log(cart);
+  const user = sessionUtil.getUser(req);
+  const cart = await cartService.getCart(user);
 
   await orderService.createOrder(cart);
-  await cartService.clearCart(req.user);
+  await cartService.clearCart(user);
 
   res.redirect('/orders');
 };

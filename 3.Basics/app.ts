@@ -40,6 +40,7 @@ app.use(
   })
 );
 
+//Fake request for dev only purpose
 app.use(async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log('Check for user init test data');
@@ -57,9 +58,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
         },
       });
     }
-    const user = users[0];
 
-    req.user = user;
     console.log('-------User object created successfully------');
     next();
   } catch (error) {
