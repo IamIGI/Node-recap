@@ -18,8 +18,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name  String
-  email String
+  email    String @unique
+  password String
 
   productsCreatedByUser Product[] @relation("ProductsCreatedByUser")
 

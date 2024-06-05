@@ -1,28 +1,11 @@
-import { PrismaClient, User } from '@prisma/client';
-import { AddUser } from '../models/user.model';
+import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
 async function getUsers() {
-  const users = await prisma.user.findFirstOrThrow();
+  const users = await prisma.user.findMany();
 
   return users;
 }
 
-async function addUser(user: AddUser): Promise<User | undefined> {
-  const { name, email } = user;
-
-  try {
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-      },
-    });
-
-    return newUser;
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-export default { getUsers, addUser };
+export default { getUsers };
