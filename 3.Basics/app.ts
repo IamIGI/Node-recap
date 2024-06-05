@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 
 import { PrismaClient } from '@prisma/client';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+import isAuthMiddleware from './middleware/isAuth.middleware';
 
 const prisma = new PrismaClient();
 
@@ -26,7 +27,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 //Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-//Express session
+//Express session, session object
 app.use(
   session({
     secret: process.env.SESSION_SECRET!,
@@ -40,34 +41,8 @@ app.use(
   })
 );
 
-//Fake request for dev only purpose
-app.use(async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    console.log('Check for user init test data');
-
-    let users = await prisma.user.findMany({
-      where: { id: '4b46fcca-a09e-455f-b23b-08e1c0e1cf12' },
-    });
-
-    //Create user if not exists
-    if (users.length === 0 || !users) {
-      users[0] = await prisma.user.create({
-        data: {
-          name: 'Igor',
-          email: 'igorEmail@gmail.com', //remember that email has to be unique
-        },
-      });
-    }
-
-    console.log('-------User object created successfully------');
-    next();
-  } catch (error) {
-    console.log(error);
-  }
-});
-
 //---------Routes----
-app.use('/admin', adminRoutes);
+app.use('/admin', isAuthMiddleware, adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 app.use(errorController.get404page);

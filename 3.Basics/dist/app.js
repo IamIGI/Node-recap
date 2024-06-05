@@ -14,6 +14,7 @@ const express_session_1 = __importDefault(require("express-session"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const client_1 = require("@prisma/client");
 const prisma_session_store_1 = require("@quixo3/prisma-session-store");
+const isAuth_middleware_1 = __importDefault(require("./middleware/isAuth.middleware"));
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 dotenv_1.default.config();
@@ -27,7 +28,7 @@ app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
 //Serve static files
 app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
-//Express session
+//Express session, session object
 app.use((0, express_session_1.default)({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -38,31 +39,8 @@ app.use((0, express_session_1.default)({
         dbRecordIdFunction: undefined,
     }),
 }));
-//Fake request for dev only purpose
-app.use(async (req, res, next) => {
-    try {
-        console.log('Check for user init test data');
-        let users = await prisma.user.findMany({
-            where: { id: '4b46fcca-a09e-455f-b23b-08e1c0e1cf12' },
-        });
-        //Create user if not exists
-        if (users.length === 0 || !users) {
-            users[0] = await prisma.user.create({
-                data: {
-                    name: 'Igor',
-                    email: 'igorEmail@gmail.com', //remember that email has to be unique
-                },
-            });
-        }
-        console.log('-------User object created successfully------');
-        next();
-    }
-    catch (error) {
-        console.log(error);
-    }
-});
 //---------Routes----
-app.use('/admin', admin_route_1.default);
+app.use('/admin', isAuth_middleware_1.default, admin_route_1.default);
 app.use(shop_route_1.default);
 app.use(auth_route_1.default);
 app.use(error_controller_1.default.get404page);
