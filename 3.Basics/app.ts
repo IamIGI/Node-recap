@@ -8,6 +8,7 @@ import errorController from './controllers/error.controller';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import csrf from 'csurf';
+import flash from 'connect-flash';
 
 import { PrismaClient } from '@prisma/client';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
@@ -44,6 +45,7 @@ app.use(
   })
 );
 app.use(csrfProtection);
+app.use(flash());
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
