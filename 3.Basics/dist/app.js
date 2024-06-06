@@ -13,6 +13,7 @@ const error_controller_1 = __importDefault(require("./controllers/error.controll
 const express_session_1 = __importDefault(require("express-session"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const csurf_1 = __importDefault(require("csurf"));
+const connect_flash_1 = __importDefault(require("connect-flash"));
 const client_1 = require("@prisma/client");
 const prisma_session_store_1 = require("@quixo3/prisma-session-store");
 const isAuth_middleware_1 = __importDefault(require("./middleware/isAuth.middleware"));
@@ -42,6 +43,7 @@ app.use((0, express_session_1.default)({
     }),
 }));
 app.use(csrfProtection);
+app.use((0, connect_flash_1.default)());
 app.use((req, res, next) => {
     res.locals.isAuthenticated = req.session.isLoggedIn;
     res.locals.csrfToken = req.csrfToken();
