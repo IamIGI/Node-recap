@@ -7,15 +7,18 @@ import authRoutes from './routes/auth.route';
 import errorController from './controllers/error.controller';
 import session from 'express-session';
 import dotenv from 'dotenv';
+import csrf from 'csurf';
 
 import { PrismaClient } from '@prisma/client';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+
 import isAuthMiddleware from './middleware/isAuth.middleware';
 
 const prisma = new PrismaClient();
 
 const app = express();
 dotenv.config();
+const csrfProtection = csrf();
 
 //----------Controllers----------
 //View engine
@@ -40,6 +43,13 @@ app.use(
     }),
   })
 );
+app.use(csrfProtection);
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
 //---------Routes----
 app.use('/admin', isAuthMiddleware, adminRoutes);

@@ -45,6 +45,7 @@ const postLogin = async (req: Request, res: Response, next: NextFunction) => {
       return res.redirect('/');
     });
   } else {
+    console.log('Bad password');
     return res.redirect('/login');
   }
 };
