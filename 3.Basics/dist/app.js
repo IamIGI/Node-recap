@@ -12,12 +12,14 @@ const auth_route_1 = __importDefault(require("./routes/auth.route"));
 const error_controller_1 = __importDefault(require("./controllers/error.controller"));
 const express_session_1 = __importDefault(require("express-session"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const csurf_1 = __importDefault(require("csurf"));
 const client_1 = require("@prisma/client");
 const prisma_session_store_1 = require("@quixo3/prisma-session-store");
 const isAuth_middleware_1 = __importDefault(require("./middleware/isAuth.middleware"));
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 dotenv_1.default.config();
+const csrfProtection = (0, csurf_1.default)();
 //----------Controllers----------
 //View engine
 //https://ejs.co/
@@ -39,6 +41,12 @@ app.use((0, express_session_1.default)({
         dbRecordIdFunction: undefined,
     }),
 }));
+app.use(csrfProtection);
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
 //---------Routes----
 app.use('/admin', isAuth_middleware_1.default, admin_route_1.default);
 app.use(shop_route_1.default);
