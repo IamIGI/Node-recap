@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { transporter, mailOptions } from '../config/nodemailer.config';
 
 const prisma = new PrismaClient();
 
@@ -106,6 +107,18 @@ const postSignup = async (req: Request, res: Response, next: NextFunction) => {
     });
 
     res.redirect('/login');
+
+    console.log('Send Email begin');
+    const result = await transporter.sendMail({
+      ...{
+        ...mailOptions,
+        to: email,
+        subject: 'Signup Succeeded!',
+        html: '<h1> You successfully signed up! </h1>',
+      },
+    });
+    console.log(result);
+    console.log('Send email done');
   } catch (e) {
     console.error(e);
   }
