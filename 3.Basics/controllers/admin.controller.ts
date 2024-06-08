@@ -72,16 +72,26 @@ const postEditProduct = async (
   res: Response,
   next: NextFunction
 ) => {
+  const user = sessionUtil.getUser(req);
+
   console.log('postEditProduct');
   const { productId, title, price, imageUrl, description } = req.body;
 
-  await productsService.updateProduct({
-    id: productId,
-    title,
-    price,
-    imageUrl,
-    description,
-  });
+  const updatedProduct = await productsService.updateProduct(
+    {
+      id: productId,
+      title,
+      price,
+      imageUrl,
+      description,
+    },
+    user
+  );
+
+  if (!updatedProduct) {
+    console.log('Could not edit product');
+    return res.redirect('/');
+  }
 
   res.redirect('/admin/products');
 };
@@ -92,9 +102,14 @@ const postDeleteProduct = async (
   next: NextFunction
 ) => {
   const prodId = req.body.productId;
+  const user = sessionUtil.getUser(req);
 
-  await productsService.destroyProductById(prodId);
+  const deletedProduct = await productsService.destroyProductById(prodId, user);
 
+  if (!deletedProduct) {
+    console.log('Could not delete product');
+    return res.redirect('/');
+  }
   res.redirect('/admin/products');
 };
 
