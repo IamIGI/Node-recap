@@ -50,23 +50,28 @@ async function addProduct(
 }
 
 async function updateProduct(
-  product: UpdateProduct
+  product: UpdateProduct,
+  user: User
 ): Promise<Product | undefined> {
   try {
     const updatedProduct = await prisma.product.update({
-      where: { id: product.id },
+      where: { id: product.id, userId: user.id },
       data: product,
     });
-
     return updatedProduct;
   } catch (e) {
     console.error(e);
   }
 }
 
-async function destroyProductById(id: string): Promise<Product | undefined> {
+async function destroyProductById(
+  id: string,
+  user: User
+): Promise<Product | undefined> {
   try {
-    const product = await prisma.product.delete({ where: { id } });
+    const product = await prisma.product.delete({
+      where: { id, userId: user.id },
+    });
 
     return product;
   } catch (e) {
