@@ -18,8 +18,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email    String @unique
-  password String
+  email                String    @unique
+  password             String
+  resetToken           String?
+  resetTokenExpiration DateTime?
 
   productsCreatedByUser Product[] @relation("ProductsCreatedByUser")
 

@@ -16,3 +16,24 @@ export const transporter = nodemailer.createTransport({
 export const mailOptions = {
   from: email,
 };
+
+const sendEmail = async (
+  email: string,
+  subject: string,
+  htmlTemplate: string
+) => {
+  try {
+    return await transporter.sendMail({
+      ...{
+        ...mailOptions,
+        to: email,
+        subject,
+        html: htmlTemplate,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export default { sendEmail };
