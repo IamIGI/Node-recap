@@ -1,13 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import nodemailerConfig, {
-  transporter,
-  mailOptions,
-} from '../config/nodemailer.config';
+import nodemailerConfig from '../config/nodemailer.config';
 import flashMessageUtil, { FlashTypeMessage } from '../utils/flashMessage.util';
 import crypto from 'crypto'; //Build in express lib
+import { validationResult } from 'express-validator';
 
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const getLogin = async (req: Request, res: Response, next: NextFunction) => {
@@ -28,17 +26,21 @@ const getLogin = async (req: Request, res: Response, next: NextFunction) => {
 const postLogin = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password }: { email: string; password: string } = req.body;
 
-  let user = await prisma.user.findUnique({
-    where: { email },
-  });
+  const errors = validationResult(req);
 
-  //Temporary solution, until we do not make the login functionality
-  if (!user) {
-    console.error('User not found');
-    req.flash(FlashTypeMessage.Error, 'Invalid Email or password.');
-    res.redirect('/');
-    return;
+  if (!errors.isEmpty()) {
+    console.log(errors.array());
+    return res.status(422).render('auth/login', {
+      path: '/login',
+      pageTitle: 'Login',
+      isAuthenticated: false,
+      errorMessage: errors.array()[0].msg,
+    });
   }
+
+  const user = (await prisma.user.findUnique({
+    where: { email },
+  }))!;
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (isMatch) {
@@ -76,28 +78,21 @@ const postSignup = async (req: Request, res: Response, next: NextFunction) => {
     password,
     confirmPassword,
   }: { email: string; password: string; confirmPassword: string } = req.body;
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    console.log(errors.array());
+    return res.status(422).render('auth/signup', {
+      path: '/signup',
+      pageTitle: 'Signup',
+      isAuthenticated: false,
+      errorMessage: errors.array()[0].msg,
+      oldInput: { email, password, confirmPassword },
+      validationErrors: errors.array(),
+    });
+  }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    if (user) {
-      console.log('User with given email already exists, email: ' + email);
-      req.flash(
-        FlashTypeMessage.Error,
-        'User with given email already exists.'
-      );
-      return res.redirect('/login');
-    }
-
-    if (password !== confirmPassword) {
-      console.log('Passwords are not the same');
-      req.flash(FlashTypeMessage.Error, 'Passwords are not the same');
-    }
-
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
 
@@ -132,6 +127,8 @@ const getSignup = async (req: Request, res: Response, next: NextFunction) => {
     pageTitle: 'Signup',
     isAuthenticated: false,
     errorMessage: flashMessage,
+    oldInput: { email: '', password: '', confirmPassword: '' },
+    validationErrors: [],
   });
 };
 
