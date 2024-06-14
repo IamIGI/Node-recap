@@ -60,6 +60,7 @@ async function updateProduct(
     });
     return updatedProduct;
   } catch (e) {
+    console.error('Error occurred during update product table');
     console.error(e);
   }
 }

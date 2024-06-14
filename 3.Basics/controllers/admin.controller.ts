@@ -18,7 +18,7 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
 const getAddProduct = (req: Request, res: Response, next: NextFunction) => {
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
-    path: '/admin/add-product',
+    path: '/admin/edit-product',
     editing: false,
   });
 };
@@ -28,19 +28,23 @@ const postAddProduct = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { title, imageUrl, price, description } = req.body as AddProduct;
-  const user = sessionUtil.getUser(req);
+  try {
+    const { title, imageUrl, price, description } = req.body as AddProduct;
+    const user = sessionUtil.getUser(req);
 
-  await productsService.addProduct(
-    {
-      title,
-      imageUrl,
-      price,
-      description,
-    },
-    user
-  );
-  res.redirect('/admin/products');
+    await productsService.addProduct(
+      {
+        title,
+        imageUrl,
+        price,
+        description,
+      },
+      user
+    );
+    res.redirect('/admin/products');
+  } catch (e) {
+    next(e);
+  }
 };
 
 const getEditProduct = async (
@@ -48,23 +52,26 @@ const getEditProduct = async (
   res: Response,
   next: NextFunction
 ) => {
-  const editMode = (req.query.edit as string) === 'true';
-  if (!editMode) return res.redirect('/');
+  try {
+    const editMode = (req.query.edit as string) === 'true';
+    if (!editMode) return res.redirect('/');
 
-  const prodId = req.params.productId as string;
-  const product = await productsService.getProductById(prodId);
+    const prodId = req.params.productId as string;
+    const product = await productsService.getProductById(prodId);
+    if (!product) {
+      console.error(`Product could not be found, prodId ${prodId}`);
+      return res.redirect('/admin/products');
+    }
 
-  if (!product) {
-    console.error(`Product could not be found, prodId ${prodId}`);
-    return res.redirect('/admin/products');
+    res.render('admin/edit-product', {
+      pageTitle: 'Edit Product',
+      path: '/admin/edit-product',
+      editing: editMode,
+      product: product,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  res.render('admin/edit-product', {
-    pageTitle: 'Edit Product',
-    path: '/admin/edit-product',
-    editing: editMode,
-    product: product,
-  });
 };
 
 const postEditProduct = async (
@@ -72,28 +79,32 @@ const postEditProduct = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = sessionUtil.getUser(req);
+  try {
+    const user = sessionUtil.getUser(req);
 
-  console.log('postEditProduct');
-  const { productId, title, price, imageUrl, description } = req.body;
+    console.log('postEditProduct');
+    const { productId, title, price, imageUrl, description } = req.body;
 
-  const updatedProduct = await productsService.updateProduct(
-    {
-      id: productId,
-      title,
-      price,
-      imageUrl,
-      description,
-    },
-    user
-  );
+    const updatedProduct = await productsService.updateProduct(
+      {
+        id: productId,
+        title,
+        price,
+        imageUrl,
+        description,
+      },
+      user
+    );
 
-  if (!updatedProduct) {
-    console.log('Could not edit product');
-    return res.redirect('/');
+    if (!updatedProduct) {
+      console.log('Could not edit product');
+      return res.redirect('/');
+    }
+
+    res.redirect('/admin/products');
+  } catch (error) {
+    next(error);
   }
-
-  res.redirect('/admin/products');
 };
 
 const postDeleteProduct = async (
@@ -101,16 +112,23 @@ const postDeleteProduct = async (
   res: Response,
   next: NextFunction
 ) => {
-  const prodId = req.body.productId;
-  const user = sessionUtil.getUser(req);
+  try {
+    const prodId = req.body.productId;
+    const user = sessionUtil.getUser(req);
 
-  const deletedProduct = await productsService.destroyProductById(prodId, user);
+    const deletedProduct = await productsService.destroyProductById(
+      prodId,
+      user
+    );
 
-  if (!deletedProduct) {
-    console.log('Could not delete product');
-    return res.redirect('/');
+    if (!deletedProduct) {
+      console.log('Could not delete product');
+      return res.redirect('/');
+    }
+    res.redirect('/admin/products');
+  } catch (error) {
+    next(error);
   }
-  res.redirect('/admin/products');
 };
 
 export default {

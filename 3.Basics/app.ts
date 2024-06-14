@@ -57,7 +57,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use('/admin', isAuthMiddleware, adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
+
 app.use(errorController.get404page);
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(error);
+  errorController.get500page(req, res, next);
+});
 
 //---------Start server--------
 async function startServer() {
