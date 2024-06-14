@@ -14,9 +14,11 @@ const express_session_1 = __importDefault(require("express-session"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const csurf_1 = __importDefault(require("csurf"));
 const connect_flash_1 = __importDefault(require("connect-flash"));
+const multer_1 = __importDefault(require("multer"));
 const client_1 = require("@prisma/client");
 const prisma_session_store_1 = require("@quixo3/prisma-session-store");
 const isAuth_middleware_1 = __importDefault(require("./middleware/isAuth.middleware"));
+const multer_config_1 = __importDefault(require("./config/multer.config"));
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 dotenv_1.default.config();
@@ -27,6 +29,7 @@ const csrfProtection = (0, csurf_1.default)();
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 app.use(body_parser_1.default.urlencoded({ extended: false }));
+app.use((0, multer_1.default)(multer_config_1.default.settings).single('image')); //'image' - name of input file
 //see body send by application/json
 app.use(express_1.default.json());
 //Serve static files

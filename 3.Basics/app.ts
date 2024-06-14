@@ -9,11 +9,13 @@ import session from 'express-session';
 import dotenv from 'dotenv';
 import csrf from 'csurf';
 import flash from 'connect-flash';
+import multer from 'multer';
 
 import { PrismaClient } from '@prisma/client';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 
 import isAuthMiddleware from './middleware/isAuth.middleware';
+import multerConfig from './config/multer.config';
 
 const prisma = new PrismaClient();
 
@@ -27,6 +29,7 @@ const csrfProtection = csrf();
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer(multerConfig.settings).single('image')); //'image' - name of input file
 //see body send by application/json
 app.use(express.json());
 //Serve static files
