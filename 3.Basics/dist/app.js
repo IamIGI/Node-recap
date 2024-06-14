@@ -54,6 +54,10 @@ app.use('/admin', isAuth_middleware_1.default, admin_route_1.default);
 app.use(shop_route_1.default);
 app.use(auth_route_1.default);
 app.use(error_controller_1.default.get404page);
+app.use((error, req, res, next) => {
+    console.error(error);
+    error_controller_1.default.get500page(req, res, next);
+});
 //---------Start server--------
 async function startServer() {
     try {

@@ -26,10 +26,7 @@ router.post(
           });
       })
       .normalizeEmail(), //remove capitalize letter e.g
-    body('password', 'Password has to be valid.')
-      .isLength({ min: 5 })
-      .isAlphanumeric()
-      .trim(),
+    body('password', 'Password has to be valid.').isLength({ min: 5 }).trim(),
   ],
   authController.postLogin
 );
@@ -60,10 +57,7 @@ router.post(
           });
       })
       .normalizeEmail(),
-    body('password', 'Password is invalid')
-      .isLength({ min: 5 })
-      .isAlphanumeric()
-      .trim(),
+    body('password', 'Password is invalid').isLength({ min: 5 }).trim(),
     body('confirmPassword')
       .custom((value, { req }) => {
         if (value === req.body.password) {

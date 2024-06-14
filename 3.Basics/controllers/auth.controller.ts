@@ -25,42 +25,45 @@ const getLogin = async (req: Request, res: Response, next: NextFunction) => {
 //Login user
 const postLogin = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password }: { email: string; password: string } = req.body;
+  try {
+    const errors = validationResult(req);
 
-  const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log(errors.array());
+      return res.status(422).render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        isAuthenticated: false,
+        errorMessage: errors.array()[0].msg,
+      });
+    }
 
-  if (!errors.isEmpty()) {
-    console.log(errors.array());
-    return res.status(422).render('auth/login', {
-      path: '/login',
-      pageTitle: 'Login',
-      isAuthenticated: false,
-      errorMessage: errors.array()[0].msg,
-    });
-  }
+    const user = (await prisma.user.findUnique({
+      where: { email },
+    }))!;
 
-  const user = (await prisma.user.findUnique({
-    where: { email },
-  }))!;
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (isMatch) {
-    console.log('Logging the user');
-    // session object is added by session middleware from app.ts, line 29
-    // Create user session
-    req.session.isLoggedIn = true;
-    req.session.user = user;
-    req.session.save((e) => {
-      if (e) {
-        console.error('Error saving session:', e);
-        return res.status(500).send('Internal Server Error');
-      }
-      console.log('Session saved successfully');
-      return res.redirect('/');
-    });
-  } else {
-    console.log('Bad password');
-    req.flash(FlashTypeMessage.Error, 'Invalid Email or password.');
-    return res.redirect('/login');
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (isMatch) {
+      console.log('Logging the user');
+      // session object is added by session middleware from app.ts, line 29
+      // Create user session
+      req.session.isLoggedIn = true;
+      req.session.user = user;
+      req.session.save((e) => {
+        if (e) {
+          console.error('Error saving session:', e);
+          return res.status(500).send('Internal Server Error');
+        }
+        console.log('Session saved successfully');
+        return res.redirect('/');
+      });
+    } else {
+      console.log('Bad password');
+      req.flash(FlashTypeMessage.Error, 'Invalid Email or password.');
+      return res.redirect('/login');
+    }
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -114,8 +117,8 @@ const postSignup = async (req: Request, res: Response, next: NextFunction) => {
 
     console.log(result);
     console.log('Send email done');
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -181,13 +184,11 @@ const postReset = async (req: Request, res: Response, next: NextFunction) => {
       `
           );
         })
-
         .catch((e) => {
           console.log(e);
         });
     } catch (error) {
-      console.log('Failed to reset password');
-      console.log(error);
+      next(error);
     }
   });
 };
@@ -227,26 +228,27 @@ const postNewPassword = async (
   next: NextFunction
 ) => {
   const { password, userId, passwordToken } = req.body;
-  const user = await prisma.user.findFirst({
-    where: {
-      resetToken: passwordToken,
-      resetTokenExpiration: { gt: new Date() },
-      id: userId,
-    },
-  });
-
-  if (!user) {
-    req.flash(
-      FlashTypeMessage.Error,
-      'Token already expired or user could not be found. Send request again'
-    );
-    return res.redirect('/login');
-  }
-
-  const salt = bcrypt.genSaltSync(10);
-  const hashedPassword = bcrypt.hashSync(password, salt);
 
   try {
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: passwordToken,
+        resetTokenExpiration: { gt: new Date() },
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      req.flash(
+        FlashTypeMessage.Error,
+        'Token already expired or user could not be found. Send request again'
+      );
+      return res.redirect('/login');
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
     const result = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -258,7 +260,7 @@ const postNewPassword = async (
     console.log(result);
     res.redirect('/login');
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };
 
