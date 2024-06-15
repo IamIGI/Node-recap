@@ -52,7 +52,22 @@ async function getOrders(user: User): Promise<Order[]> {
   return ordersDto;
 }
 
+async function getOrder(orderId: string, user: User): Promise<Order> {
+  const order = await prisma.order.findFirst({
+    where: { userId: user.id, id: orderId },
+  });
+  const orderItem: OrderWithProducts[] = await prisma.orderItem.findMany({
+    where: { orderId: orderId },
+    include: { product: true },
+  });
+  return {
+    id: orderId,
+    products: orderUtil.getOrderProductItems(orderId, orderItem),
+  };
+}
+
 export default {
   createOrder,
   getOrders,
+  getOrder,
 };

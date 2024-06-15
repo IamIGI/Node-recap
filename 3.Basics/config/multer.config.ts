@@ -4,8 +4,11 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-const folderForImages = 'images';
-const postFolderPath = path.join(process.cwd(), folderForImages);
+const imagesFolder = 'data/images';
+const invoicesFolder = 'data/invoices';
+
+const postFolderPath = path.join(process.cwd(), imagesFolder);
+console.log(`Multer: ${postFolderPath}`);
 
 // Ensure the 'images' directory exists
 const ensureDirectoryExistence = (dir: string) => {
@@ -23,7 +26,7 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     cb: (error: Error | null, destination: string) => void
   ) => {
-    cb(null, folderForImages);
+    cb(null, imagesFolder);
   },
   filename: (
     req: Request,
@@ -52,5 +55,6 @@ const settings: multer.Options = { storage, fileFilter };
 
 export default {
   settings,
-  folderForImages,
+  imagesFolder,
+  invoicesFolder,
 };

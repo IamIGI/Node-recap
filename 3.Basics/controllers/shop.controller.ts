@@ -1,11 +1,14 @@
 import { NextFunction } from 'express';
 import { Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 
 import cartService from '../services/cart.service';
 import { CartProductItemForFrontend } from '../models/cart.model';
 import productsService from '../services/products.service';
 import orderService from '../services/order.service';
 import sessionUtil from '../utils/session.util';
+import multerConfig from '../config/multer.config';
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   const products = await productsService.getProducts();
@@ -76,7 +79,10 @@ const postCart = async (req: Request, res: Response, next: NextFunction) => {
 const getOrders = async (req: Request, res: Response, next: NextFunction) => {
   const user = sessionUtil.getUser(req);
   const orders = await orderService.getOrders(user);
-
+  if (orders.length > 0) {
+    console.log(orders);
+    console.log(orders[0].products);
+  }
   res.render('shop/orders', {
     path: '/orders',
     pageTitle: 'Your Orders',
@@ -113,6 +119,29 @@ const postOrder = async (req: Request, res: Response, next: NextFunction) => {
   res.redirect('/orders');
 };
 
+const getInvoice = async (req: Request, res: Response, next: NextFunction) => {
+  const orderId = req.params.orderId;
+  const user = sessionUtil.getUser(req);
+
+  const order = orderService.getOrder(orderId, user);
+  if (!order) {
+    return next(new Error('No order found, or user unauthorized'));
+  }
+
+  const invoiceName = `invoice-${orderId}.pdf`;
+  const invoicePath = path.join(
+    process.cwd(),
+    multerConfig.invoicesFolder,
+    invoiceName
+  );
+
+  res.setHeader('Content-Type', 'application/pdf');
+  //inline - open in browser, attachment - save in
+  res.setHeader('Content-Disposition', `attachment; filename=${invoiceName}`);
+
+  res.sendFile(invoicePath);
+};
+
 export default {
   getProducts,
   getProduct,
@@ -123,4 +152,5 @@ export default {
   getOrders,
   postCartDeleteProduct,
   postOrder,
+  getInvoice,
 };

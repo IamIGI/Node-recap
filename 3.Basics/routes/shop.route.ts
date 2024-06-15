@@ -18,5 +18,5 @@ router.post(
   shopController.postCartDeleteProduct
 );
 router.post('/create-order', isAuthMiddleware, shopController.postOrder);
-
+router.get('/orders/:orderId', isAuthMiddleware, shopController.getInvoice);
 export default router;
