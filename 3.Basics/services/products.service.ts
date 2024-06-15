@@ -3,7 +3,16 @@ import { error } from 'console';
 import { AddProduct, UpdateProduct } from '../models/product.model';
 
 import { PrismaClient, User } from '@prisma/client';
+import fileUtil from '../utils/file.util';
 const prisma = new PrismaClient();
+
+async function deleteImage(productId: string, userId: string) {
+  const oldProduct = await prisma.product.findFirst({
+    where: { id: productId, userId },
+  });
+  if (!oldProduct) throw Error('Could not find product while updating it');
+  fileUtil.deleteFile(oldProduct.imageUrl);
+}
 
 async function getProducts(): Promise<Product[]> {
   const products = await prisma.product.findMany();
@@ -58,6 +67,8 @@ async function updateProduct(
       delete product.imageUrl;
     } else {
       product.imageUrl = `/${`/${product.imageUrl}`}`;
+
+      await deleteImage(product.id, user.id);
     }
 
     const updatedProduct = await prisma.product.update({
@@ -71,11 +82,13 @@ async function updateProduct(
   }
 }
 
-async function destroyProductById(
+async function deleteProductById(
   id: string,
   user: User
 ): Promise<Product | undefined> {
   try {
+    await deleteImage(id, user.id);
+
     const product = await prisma.product.delete({
       where: { id, userId: user.id },
     });
@@ -92,5 +105,5 @@ export default {
   getProductById,
   addProduct,
   updateProduct,
-  destroyProductById,
+  deleteProductById,
 };

@@ -1,7 +1,9 @@
 import { NextFunction } from 'express';
 import { Request, Response } from 'express';
-import fs from 'fs';
+
 import path from 'path';
+import pdfDocument from 'pdfkit';
+import fs from 'fs';
 
 import cartService from '../services/cart.service';
 import { CartProductItemForFrontend } from '../models/cart.model';
@@ -69,7 +71,7 @@ const postCart = async (req: Request, res: Response, next: NextFunction) => {
   const prodId = req.body.productId;
 
   const user = sessionUtil.getUser(req);
-  console.log('add product to cart');
+
   //TODO: change hard coded quantity
   const cart = await cartService.addProduct(prodId, user, 1);
 
@@ -79,10 +81,7 @@ const postCart = async (req: Request, res: Response, next: NextFunction) => {
 const getOrders = async (req: Request, res: Response, next: NextFunction) => {
   const user = sessionUtil.getUser(req);
   const orders = await orderService.getOrders(user);
-  if (orders.length > 0) {
-    console.log(orders);
-    console.log(orders[0].products);
-  }
+
   res.render('shop/orders', {
     path: '/orders',
     pageTitle: 'Your Orders',
@@ -123,7 +122,7 @@ const getInvoice = async (req: Request, res: Response, next: NextFunction) => {
   const orderId = req.params.orderId;
   const user = sessionUtil.getUser(req);
 
-  const order = orderService.getOrder(orderId, user);
+  const order = await orderService.getOrder(orderId, user);
   if (!order) {
     return next(new Error('No order found, or user unauthorized'));
   }
@@ -134,12 +133,29 @@ const getInvoice = async (req: Request, res: Response, next: NextFunction) => {
     multerConfig.invoicesFolder,
     invoiceName
   );
-
   res.setHeader('Content-Type', 'application/pdf');
   //inline - open in browser, attachment - save in
-  res.setHeader('Content-Disposition', `attachment; filename=${invoiceName}`);
+  res.setHeader('Content-Disposition', `inline; filename=${invoiceName}`);
 
-  res.sendFile(invoicePath);
+  const pdfDoc = new pdfDocument();
+  pdfDoc.pipe(fs.createWriteStream(invoicePath));
+  pdfDoc.pipe(res);
+  pdfDoc.fontSize(26).text('Invoice', { underline: true });
+
+  pdfDoc.text('-------------------------------');
+  let totalPrice = 0;
+  order.products.forEach((product) => {
+    const { title, orderItem, description, price, id } = product;
+    totalPrice += orderItem.quantity * price.toNumber();
+    pdfDoc.fontSize(14).text(`${title} - ${orderItem.quantity} x $${price}`);
+  });
+
+  pdfDoc.text('-------------------------------');
+  pdfDoc.fontSize(20).text(`Total price: ${totalPrice}`);
+
+  pdfDoc.end();
+
+  // res.sendFile(invoicePath);
 };
 
 export default {
