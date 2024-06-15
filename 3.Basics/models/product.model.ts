@@ -7,4 +7,6 @@ export interface AddProduct
   > {}
 
 export interface UpdateProduct
-  extends Omit<Product, 'createdAt' | 'updatedAt' | 'userId'> {}
+  extends Omit<Product, 'createdAt' | 'updatedAt' | 'userId' | 'imageUrl'> {
+  imageUrl?: string;
+}

@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-const postFolderPath = path.join(process.cwd(), 'images');
+const postFolderPath = path.join(process.cwd(), 'data/products/images');
 
 // Ensure the 'images' directory exists
 const ensureDirectoryExistence = (dir: string) => {
@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
     cb: (error: Error | null, filename: string) => void
   ) => {
     const fileExtension: string = path.extname(file.originalname);
-    const fileName: string = uuidv4() + fileExtension;
+    const fileName: string = `${uuidv4()}_${fileExtension}`;
     cb(null, fileName);
   },
 });
@@ -44,6 +44,7 @@ const fileFilter = (
   if (['image/png', 'image/jpg', 'image/jpeg'].includes(file.mimetype)) {
     cb(null, true);
   } else {
+    console.log('Given file cant be saved');
     cb(null, false);
   }
 };

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import productsService from '../services/products.service';
 
-import { AddProduct } from '../models/product.model';
+import { AddProduct, UpdateProduct } from '../models/product.model';
 import sessionUtil from '../utils/session.util';
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -29,8 +29,17 @@ const postAddProduct = async (
   next: NextFunction
 ) => {
   try {
-    const { title, imageUrl, price, description } = req.body as AddProduct;
+    const { title, price, description } = req.body as AddProduct;
+    const image = req.file;
     const user = sessionUtil.getUser(req);
+    console.log(image);
+
+    if (!image) {
+      console.log('No image provided');
+      return;
+    }
+
+    const imageUrl = image.path;
 
     await productsService.addProduct(
       {
@@ -82,15 +91,15 @@ const postEditProduct = async (
   try {
     const user = sessionUtil.getUser(req);
 
-    console.log('postEditProduct');
-    const { productId, title, price, imageUrl, description } = req.body;
+    const { productId, title, price, description } = req.body;
+    const image = req.file;
 
     const updatedProduct = await productsService.updateProduct(
       {
         id: productId,
         title,
         price,
-        imageUrl,
+        imageUrl: image?.path,
         description,
       },
       user

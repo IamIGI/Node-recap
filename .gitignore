@@ -85,3 +85,7 @@ ehthumbs.db
 .dist
 **/dist/
 dist/
+
+.data
+**/data/
+data/
