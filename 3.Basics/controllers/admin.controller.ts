@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import productsService from '../services/products.service';
 
-import { AddProduct, UpdateProduct } from '../models/product.model';
+import { AddProduct } from '../models/product.model';
 import sessionUtil from '../utils/session.util';
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -126,7 +126,7 @@ const postDeleteProduct = async (
     const prodId = req.body.productId;
     const user = sessionUtil.getUser(req);
 
-    const deletedProduct = await productsService.destroyProductById(
+    const deletedProduct = await productsService.deleteProductById(
       prodId,
       user
     );
