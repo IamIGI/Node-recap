@@ -54,6 +54,10 @@ async function updateProduct(
   user: User
 ): Promise<Product | undefined> {
   try {
+    if (!product.imageUrl) {
+      delete product.imageUrl;
+    }
+
     const updatedProduct = await prisma.product.update({
       where: { id: product.id, userId: user.id },
       data: product,
