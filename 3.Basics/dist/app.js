@@ -23,6 +23,7 @@ const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 dotenv_1.default.config();
 const csrfProtection = (0, csurf_1.default)();
+console.log(`app: ${`${multer_config_1.default.imagesFolder}`}`);
 //----------Controllers----------
 //View engine
 //https://ejs.co/
@@ -32,15 +33,9 @@ app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use((0, multer_1.default)(multer_config_1.default.settings).single('image')); //'image' - name of input file
 //see body send by application/json
 app.use(express_1.default.json());
-app.use((req, res, next) => {
-    console.log(`Request URL: ${req.url}`);
-    next();
-});
 //Serve static files
 app.use(express_1.default.static(path_1.default.join(process.cwd(), 'public')));
-app.use(`/${multer_config_1.default.folderForImages}`, express_1.default.static(path_1.default.join(process.cwd(), `${multer_config_1.default.folderForImages}`)));
-console.log('export public folder');
-console.log(path_1.default.join(process.cwd(), `${multer_config_1.default.folderForImages}`));
+app.use(`/${multer_config_1.default.imagesFolder}`, express_1.default.static(path_1.default.join(process.cwd(), `${multer_config_1.default.imagesFolder}`)));
 //Express session, session object
 app.use((0, express_session_1.default)({
     secret: process.env.SESSION_SECRET,

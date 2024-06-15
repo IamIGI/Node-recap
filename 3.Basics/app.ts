@@ -23,6 +23,8 @@ const app = express();
 dotenv.config();
 const csrfProtection = csrf();
 
+console.log(`app: ${`${multerConfig.imagesFolder}`}`);
+
 //----------Controllers----------
 //View engine
 //https://ejs.co/
@@ -36,8 +38,8 @@ app.use(express.json());
 //Serve static files
 app.use(express.static(path.join(process.cwd(), 'public')));
 app.use(
-  `/${multerConfig.folderForImages}`,
-  express.static(path.join(process.cwd(), `${multerConfig.folderForImages}`))
+  `/${multerConfig.imagesFolder}`,
+  express.static(path.join(process.cwd(), `${multerConfig.imagesFolder}`))
 );
 
 //Express session, session object
