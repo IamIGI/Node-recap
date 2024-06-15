@@ -89,3 +89,7 @@ dist/
 .data
 **/data/
 data/
+
+.images
+**/images/
+images/

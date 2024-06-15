@@ -1,7 +1,9 @@
 {
   "scripts": {
-    "build": "tsc --outDir dist && mkdirp -p dist/views && cp -r views dist && mkdirp -p dist/public && cp -r public/* dist/public && mkdirp -p dist/data && mkdirp -p dist/images && cp -r images/* dist/images",
+    "clean": "rm -rf dist",
+    "build": " npm run clean && tsc --outDir dist && mkdirp -p dist/views && cp -r views dist && mkdirp -p dist/public && cp -r public/* dist/public && mkdirp -p dist/data && mkdirp -p dist/data && cp -r data/* dist/data",
     "start": "nodemon dist/app.js",
+    "dev": "npx ts-node  app.ts",
     "migrate": "npx prisma migrate dev",
     "generate": "npx prisma generate",
     "resetDB": "node prisma/utils/resetDB.js"

@@ -32,14 +32,15 @@ const postAddProduct = async (
     const { title, price, description } = req.body as AddProduct;
     const image = req.file;
     const user = sessionUtil.getUser(req);
-    console.log(image);
 
+    console.log(image);
     if (!image) {
       console.log('No image provided');
       return;
     }
 
-    const imageUrl = image.path;
+    const imageUrl = image.path.replaceAll('\\', '/');
+    console.log(imageUrl);
 
     await productsService.addProduct(
       {

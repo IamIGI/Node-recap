@@ -36,7 +36,7 @@ async function addProduct(
     const newProduct = await prisma.product.create({
       data: {
         title,
-        imageUrl,
+        imageUrl: `/${imageUrl}`,
         price,
         description,
         user: { connect: { id: user.id } },
@@ -56,6 +56,8 @@ async function updateProduct(
   try {
     if (!product.imageUrl) {
       delete product.imageUrl;
+    } else {
+      product.imageUrl = `/${`/${product.imageUrl}`}`;
     }
 
     const updatedProduct = await prisma.product.update({

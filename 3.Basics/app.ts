@@ -32,8 +32,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(multer(multerConfig.settings).single('image')); //'image' - name of input file
 //see body send by application/json
 app.use(express.json());
+
 //Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(
+  `/${multerConfig.folderForImages}`,
+  express.static(path.join(process.cwd(), `${multerConfig.folderForImages}`))
+);
+
 //Express session, session object
 app.use(
   session({
@@ -51,7 +57,7 @@ app.use(csrfProtection);
 app.use(flash());
 
 app.use((req: Request, res: Response, next: NextFunction) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.isAuthenticated = req.session?.isLoggedIn;
   res.locals.csrfToken = req.csrfToken();
   next();
 });
