@@ -4,6 +4,7 @@ import { AddProduct, UpdateProduct } from '../models/product.model';
 
 import { PrismaClient, User } from '@prisma/client';
 import fileUtil from '../utils/file.util';
+import globalConfig from '../config/global.config';
 const prisma = new PrismaClient();
 
 async function deleteImage(productId: string, userId: string) {
@@ -14,10 +15,25 @@ async function deleteImage(productId: string, userId: string) {
   fileUtil.deleteFile(oldProduct.imageUrl);
 }
 
-async function getProducts(): Promise<Product[]> {
-  const products = await prisma.product.findMany();
-
-  return products;
+async function getProducts(
+  page?: number
+): Promise<{ products: Product[]; totalItems: number }> {
+  let products: Product[] = [];
+  let totalItems: number = 0;
+  try {
+    totalItems = await prisma.product.count();
+    if (page) {
+      products = await prisma.product.findMany({
+        skip: (page - 1) * globalConfig.itemsPerPage,
+        take: globalConfig.itemsPerPage,
+      });
+    } else {
+      products = await prisma.product.findMany();
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  return { products, totalItems };
 }
 async function getProductsByUserId(user: User): Promise<Product[]> {
   const products = await prisma.product.findMany({

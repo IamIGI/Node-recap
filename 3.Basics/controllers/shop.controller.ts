@@ -11,16 +11,24 @@ import productsService from '../services/products.service';
 import orderService from '../services/order.service';
 import sessionUtil from '../utils/session.util';
 import multerConfig from '../config/multer.config';
+import globalConfig from '../config/global.config';
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
-  const products = await productsService.getProducts();
+  const page = Number(req.query.page || 1);
 
+  const products = await productsService.getProducts(page);
   if (!products) return;
 
   res.render('shop/product-list', {
-    prods: products,
+    prods: products.products,
     pageTitle: 'All Products',
     path: '/products',
+    currentPage: page,
+    hasNextPage: globalConfig.itemsPerPage * page < products.totalItems,
+    hasPreviousPage: page > 1,
+    nextPage: page + 1,
+    previousPage: page - 1,
+    lastPage: Math.ceil(products.totalItems / globalConfig.itemsPerPage),
   });
 };
 
@@ -42,13 +50,21 @@ const getProduct = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getIndex = async (req: Request, res: Response, next: NextFunction) => {
-  const products = await productsService.getProducts();
+  const page = Number(req.query.page || 1);
+
+  const products = await productsService.getProducts(page);
   if (!products) return;
 
   res.render('shop/index', {
-    prods: products,
+    prods: products.products,
     pageTitle: 'Shop',
     path: '/',
+    currentPage: page,
+    hasNextPage: globalConfig.itemsPerPage * page < products.totalItems,
+    hasPreviousPage: page > 1,
+    nextPage: page + 1,
+    previousPage: page - 1,
+    lastPage: Math.ceil(products.totalItems / globalConfig.itemsPerPage),
   });
 };
 
