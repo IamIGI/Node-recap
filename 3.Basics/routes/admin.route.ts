@@ -9,6 +9,6 @@ router.post('/add-product', adminController.postAddProduct);
 router.get('/products', adminController.getProducts); //TODO: change so admin could only fetch his products
 router.get('/edit-product/:productId', adminController.getEditProduct);
 router.post('/edit-product', adminController.postEditProduct);
-router.post('/delete-product', adminController.postDeleteProduct);
+router.delete('/product/:productId', adminController.deleteProduct);
 
 export default router;
