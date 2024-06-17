@@ -117,13 +117,13 @@ const postEditProduct = async (
   }
 };
 
-const postDeleteProduct = async (
+const deleteProduct = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const prodId = req.body.productId;
+    const prodId = req.params.productId;
     const user = sessionUtil.getUser(req);
 
     const deletedProduct = await productsService.deleteProductById(
@@ -135,9 +135,10 @@ const postDeleteProduct = async (
       console.log('Could not delete product');
       return res.redirect('/');
     }
-    res.redirect('/admin/products');
+
+    res.status(200).json({ message: 'Success!' });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: 'Deleting product has failed' });
   }
 };
 
@@ -147,5 +148,5 @@ export default {
   getProducts,
   getEditProduct,
   postEditProduct,
-  postDeleteProduct,
+  deleteProduct,
 };
