@@ -13,6 +13,10 @@ import sessionUtil from '../utils/session.util';
 import multerConfig from '../config/multer.config';
 import globalConfig from '../config/global.config';
 
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripePublicKey = process.env.STRIPE_PUBLIC_KEY;
+const stripe = require('stripe')(stripeSecretKey);
+
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   const page = Number(req.query.page || 1);
 
@@ -106,10 +110,66 @@ const getOrders = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getCheckout = async (req: Request, res: Response, next: NextFunction) => {
-  res.render('shop/checkout', {
-    path: '/checkout',
-    pageTitle: 'Checkout',
+  const user = sessionUtil.getUser(req);
+  const cart = await cartService.getCart(user);
+
+  const cartProducts: CartProductItemForFrontend[] = cart.map((cartItem) => {
+    return { ...cartItem.product, quantity: cartItem.quantity };
   });
+
+  console.log(cartProducts);
+  let total: number = 0;
+  cartProducts.forEach((p) => (total = Number(p.quantity) + Number(p.price)));
+
+  const orderedProducts = cartProducts.map((p) => {
+    return {
+      quantity: p.quantity,
+      price_data: {
+        currency: 'usd',
+        unit_amount: Number(p.price) * 100,
+        product_data: {
+          name: p.title,
+          description: p.description,
+        },
+      },
+    };
+  });
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: orderedProducts,
+      customer_email: user.email,
+      success_url: req.protocol + '://' + req.get('host') + '/checkout/success', //http://localhost:3000/checkout/success
+      cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
+    });
+
+    res.render('shop/checkout', {
+      path: '/checkout',
+      pageTitle: 'Checkout',
+      products: cartProducts,
+      totalSum: total,
+      sessionId: session.id,
+      stripePublicKey,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getCheckoutSuccess = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = sessionUtil.getUser(req);
+  const cart = await cartService.getCart(user);
+
+  await orderService.createOrder(cart);
+  await cartService.clearCart(user);
+
+  res.redirect('/orders');
 };
 
 const postCartDeleteProduct = async (
@@ -181,6 +241,7 @@ export default {
   getCart,
   postCart,
   getCheckout,
+  getCheckoutSuccess,
   getOrders,
   postCartDeleteProduct,
   postOrder,
