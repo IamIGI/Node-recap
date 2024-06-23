@@ -15,7 +15,7 @@ async function addPost(payload: AddPost) {
     data: {
       title,
       content,
-      imageUrl,
+      imageUrl: `/${imageUrl}`,
     },
   });
 

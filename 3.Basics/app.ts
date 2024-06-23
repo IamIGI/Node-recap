@@ -31,11 +31,11 @@ console.log(`app: ${`${multerConfig.imagesFolder}`}`);
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(multer(multerConfig.settings).single('image')); //'image' - name of input file
 //see body send by application/json
 app.use(express.json());
 
-//Serve static files
+//Files configuration
+app.use(multer(multerConfig.settings).single('image')); //'image' - name of input file
 app.use(express.static(path.join(process.cwd(), 'public')));
 app.use(
   `/${multerConfig.imagesFolder}`,

@@ -1,15 +1,22 @@
 import express, { NextFunction, Request, Response } from 'express';
 import feedRouter from './routes/feed.router';
 import bodyParser from 'body-parser';
+import path from 'path';
+import multer from 'multer';
 
 import { PrismaClient } from '@prisma/client';
-import path from 'path';
-
+import multerConfig from './config/multer.config';
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(bodyParser.json()); //for application/json
-app.use('/image', express.static(path.join(process.cwd(), 'images')));
+
+//Images config
+app.use(multer(multerConfig.settings).single('image')); //'image' - name of input file
+app.use(
+  `/${multerConfig.imagesFolder}`,
+  express.static(path.join(process.cwd(), `${multerConfig.imagesFolder}`))
+);
 
 app.use('/', (req: Request, res: Response, next: NextFunction) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
