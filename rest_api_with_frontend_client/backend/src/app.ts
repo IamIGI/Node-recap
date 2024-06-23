@@ -3,12 +3,15 @@ import feedRouter from './routes/feed.router';
 import bodyParser from 'body-parser';
 import path from 'path';
 import multer from 'multer';
+import cors from 'cors';
 
 import { PrismaClient } from '@prisma/client';
 import multerConfig from './config/multer.config';
+import corsConfig from './config/cors.config';
 const app = express();
 const prisma = new PrismaClient();
 
+app.use(cors(corsConfig));
 app.use(bodyParser.json()); //for application/json
 
 //Images config
@@ -17,15 +20,6 @@ app.use(
   `/${multerConfig.imagesFolder}`,
   express.static(path.join(process.cwd(), `${multerConfig.imagesFolder}`))
 );
-
-app.use('/', (req: Request, res: Response, next: NextFunction) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Method', 'POST, PUT, GET, PATCH, DELETE');
-  // res.setHeader('Access-Control-Allow-Header', 'Content-Type, Authorization'); create the cors err
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type'); // that works;
-
-  next();
-});
 
 app.use('/feed', feedRouter);
 

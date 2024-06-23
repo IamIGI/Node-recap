@@ -1,3 +1,3 @@
 import { Post } from '@prisma/client';
 
-export interface AddPost extends Omit<Post, 'id' | 'createdAt' | 'updatedAt'> {}
+export interface PostDto extends Omit<Post, 'id' | 'createdAt' | 'updatedAt'> {}
