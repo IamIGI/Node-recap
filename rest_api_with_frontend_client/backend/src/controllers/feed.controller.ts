@@ -35,11 +35,19 @@ async function createPost(req: Request, res: Response, next: NextFunction) {
     });
   }
 
+  if (!req.file) {
+    const error = new Error('No image provided');
+    next(error);
+    return;
+  }
+
   const payload = req.body as AddPost;
+  const imageUrl = req.file.path.replaceAll('\\', '/');
+
   try {
     const createdPost = await postService.addPost({
       ...payload,
-      imageUrl: '/image/duck.jpg',
+      imageUrl,
     });
 
     //TODO: when users added, change this lines of code
@@ -49,6 +57,7 @@ async function createPost(req: Request, res: Response, next: NextFunction) {
         name: 'Igor',
       },
     };
+
     if (!createdPost) throw new Error('Post was not created');
 
     res.status(201).json({
@@ -79,7 +88,7 @@ async function getPost(req: Request, res: Response, next: NextFunction) {
     if (!post) {
       throw new Error('Could not find post');
     }
-    console.log(postDtm);
+
     res.status(200).json({
       message: 'Post fetched.',
       post: postDtm,
