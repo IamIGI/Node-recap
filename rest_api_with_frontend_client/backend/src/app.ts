@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import feedRouter from './routes/feed.router';
+import authRouter from './routes/auth.route';
 import bodyParser from 'body-parser';
 import path from 'path';
 import multer from 'multer';
@@ -22,9 +23,11 @@ app.use(
 );
 
 app.use('/feed', feedRouter);
+app.use('/auth', authRouter);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(error);
+
   res.json({ message: error.message });
   // errorController.get500page(req, res, next);
 });
