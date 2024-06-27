@@ -1,3 +1,4 @@
+import { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 function hashPassword(password: string) {
@@ -6,6 +7,11 @@ function hashPassword(password: string) {
   return hashedPassword;
 }
 
+async function comparePassword(password: string, user: User) {
+  return await bcrypt.compare(password, user.password);
+}
+
 export default {
   hashPassword,
+  comparePassword,
 };
