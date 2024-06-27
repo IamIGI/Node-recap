@@ -7,13 +7,17 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon dist/app.js",
     "devts": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "build": "tsc --outDir dist"
+    "build": "tsc --outDir dist",
+    "resetDB": "node prisma/utils/resetDB.js",
+    "migrate": "npx prisma migrate dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.15.1",
+    "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",
