@@ -5,11 +5,14 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import multer from 'multer';
 import cors from 'cors';
+import dotenv from 'dotenv';
 
 import { PrismaClient } from '@prisma/client';
 import multerConfig from './config/multer.config';
 import corsConfig from './config/cors.config';
+
 const app = express();
+dotenv.config();
 const prisma = new PrismaClient();
 
 app.use(cors(corsConfig));
