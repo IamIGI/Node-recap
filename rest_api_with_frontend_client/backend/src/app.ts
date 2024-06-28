@@ -25,6 +25,12 @@ app.use(
   express.static(path.join(process.cwd(), `${multerConfig.imagesFolder}`))
 );
 
+app.use((req: Request, res: Response, next: NextFunction) => {
+  //You need to enable header for token Authorization to work
+  res.setHeader('Access-Control-Allow-Headers', ' Content-Type, Authorization');
+  next();
+});
+
 app.use('/feed', feedRouter);
 app.use('/auth', authRouter);
 

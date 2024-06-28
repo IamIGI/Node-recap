@@ -27,10 +27,12 @@ async function register(req: Request, res: Response, next: NextFunction) {
 }
 
 async function login(req: Request, res: Response, next: NextFunction) {
+  console.log('login');
   const { email, password } = req.body;
 
   try {
-    const user = await userService.getUser(email);
+    const user = await userService.getUserByEmail(email);
+    console.log(user);
     if (!user) {
       return res.status(401).json({
         message: 'User where not found.',
@@ -43,7 +45,7 @@ async function login(req: Request, res: Response, next: NextFunction) {
     }
 
     const token = authService.getJWT_token(user);
-
+    console.log('here');
     res.status(200).json({ token, userId: user.id });
   } catch (error) {
     next(error);

@@ -3,19 +3,22 @@ import { validationResult } from 'express-validator';
 import { PostDto } from '../models/feed.model';
 import postService from '../services/post.service';
 import fileUtil from '../utils/file.util';
+import userService from '../services/user.service';
 
 async function getPosts(req: Request, res: Response, next: NextFunction) {
   const page = Number(req.query.page || 1);
 
   try {
     let posts = await postService.getPosts(page);
+    // console.log(posts);
 
     //TODO: when users added, change this lines of code
     const postsDto = posts.posts?.map((post) => {
       return {
         ...post,
         creator: {
-          name: 'Igor',
+          _id: post.user.id,
+          name: post.user.name,
         },
       };
     });
@@ -46,23 +49,30 @@ async function createPost(req: Request, res: Response, next: NextFunction) {
   }
 
   const payload = req.body as PostDto;
+  const userId = req.userId!;
   const imageUrl = req.file.path;
 
   try {
-    const createdPost = await postService.PostDto({
-      ...payload,
-      imageUrl,
-    });
+    const createdPost = await postService.createPost(
+      {
+        ...payload,
+        imageUrl,
+      },
+      userId
+    );
+
+    const user = await userService.getUserById(userId);
+
+    if (!createdPost || !user) throw new Error('Post was not created');
 
     //TODO: when users added, change this lines of code
     const createdPostDtm = {
       ...createdPost,
       creator: {
-        name: 'Igor',
+        id: user.id,
+        name: user.name,
       },
     };
-
-    if (!createdPost) throw new Error('Post was not created');
 
     res.status(201).json({
       message: 'Post created successfully',
@@ -81,21 +91,13 @@ async function getPost(req: Request, res: Response, next: NextFunction) {
   try {
     const post = await postService.getPost(postId);
 
-    //TODO: when users added, change this lines of code
-    const postDtm = {
-      ...post,
-      creator: {
-        name: 'Igor',
-      },
-    };
-
     if (!post) {
       throw new Error('Could not find post');
     }
 
     res.status(200).json({
       message: 'Post fetched.',
-      post: postDtm,
+      post,
     });
   } catch (error) {
     next(error);
@@ -138,15 +140,7 @@ async function updatePost(req: Request, res: Response, next: NextFunction) {
       imageUrl,
     });
 
-    //TODO: when users added, change this lines of code
-    const updatedPostDtm = {
-      ...updatedPost,
-      creator: {
-        name: 'Igor',
-      },
-    };
-
-    res.status(200).json({ message: 'Post updated!', post: updatedPostDtm });
+    res.status(200).json({ message: 'Post updated!', post: updatedPost });
   } catch (error) {
     next(error);
   }

@@ -1,8 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-async function getUser(email: string) {
+async function getUserByEmail(email: string) {
   return await prisma.user.findFirst({ where: { email } });
+}
+
+async function getUserById(id: string) {
+  return await prisma.user.findFirst({ where: { id } });
 }
 
 async function createUser(email: string, password: string, name: string) {
@@ -16,6 +20,7 @@ async function createUser(email: string, password: string, name: string) {
 }
 
 export default {
-  getUser,
+  getUserByEmail,
+  getUserById,
   createUser,
 };
