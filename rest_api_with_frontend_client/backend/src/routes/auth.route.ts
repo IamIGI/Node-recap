@@ -12,7 +12,7 @@ router.put(
       .isEmail()
       .withMessage('Please enter a valid email.')
       .custom(async (value: string, { req }) => {
-        const user = await userService.getUser(value);
+        const user = await userService.getUserByEmail(value);
         if (user) {
           return Promise.reject('E-mail address already exists');
         }

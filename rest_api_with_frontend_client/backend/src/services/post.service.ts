@@ -1,20 +1,23 @@
-import { PostDto } from '../models/feed.model';
+import { PostDto, PostWithUserData } from '../models/feed.model';
 
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-async function getPosts(page: number) {
+async function getPosts(
+  page: number
+): Promise<{ countPosts: number; posts: PostWithUserData[] }> {
   const itemsPerPage = 2;
 
   const countPosts = await prisma.post.count();
-  const posts = await prisma.post.findMany({
+  const posts: PostWithUserData[] = await prisma.post.findMany({
     skip: (page - 1) * itemsPerPage,
     take: itemsPerPage,
+    include: { user: true },
   });
   return { countPosts, posts };
 }
 
-async function PostDto(payload: PostDto) {
+async function createPost(payload: PostDto, userId: string) {
   const { title, imageUrl, content } = payload;
 
   const post = await prisma.post.create({
@@ -22,14 +25,18 @@ async function PostDto(payload: PostDto) {
       title,
       content,
       imageUrl: `/${imageUrl.replaceAll('\\', '/')}`,
+      userId,
     },
   });
 
   return post;
 }
 
-async function getPost(postId: string) {
-  const post = await prisma.post.findFirst({ where: { id: postId } });
+async function getPost(postId: string): Promise<PostWithUserData | null> {
+  const post: PostWithUserData | null = await prisma.post.findFirst({
+    where: { id: postId },
+    include: { user: true },
+  });
   return post;
 }
 
@@ -40,6 +47,7 @@ async function updatePost(postId: string, payload: PostDto) {
       ...payload,
       imageUrl: `/${payload.imageUrl.replaceAll('\\', '/')}`,
     },
+    include: { user: true },
   });
   if (!updatedPost) {
     throw new Error(`Could not find post with given id: ${postId}`);
@@ -55,7 +63,7 @@ async function deletePost(postId: string) {
 
 export default {
   getPosts,
-  PostDto,
+  createPost,
   getPost,
   updatePost,
   deletePost,
