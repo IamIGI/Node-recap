@@ -35,6 +35,7 @@ app.use('/feed', feedRouter);
 app.use('/auth', authRouter);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  console.log('Final error catch');
   console.error(error);
 
   res.json({ message: error.message });

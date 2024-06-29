@@ -21,10 +21,14 @@ class Feed extends Component {
     editLoading: false,
   };
 
-  feedUrl = 'http://localhost:8080/feed';
+  baseUrl = 'http://localhost:8080';
 
   componentDidMount() {
-    fetch('URL')
+    fetch(`${this.baseUrl}/auth/status`, {
+      headers: {
+        Authorization: `Bearer ${this.props.token}`,
+      },
+    })
       .then((res) => {
         if (res.status !== 200) {
           throw new Error('Failed to fetch user status.');
@@ -53,7 +57,7 @@ class Feed extends Component {
       this.setState({ postPage: page });
     }
 
-    fetch(`${this.feedUrl}/posts?page=${page}`, {
+    fetch(`${this.baseUrl}/feed/posts?page=${page}`, {
       headers: {
         Authorization: `Bearer ${this.props.token}`,
       },
@@ -78,7 +82,16 @@ class Feed extends Component {
 
   statusUpdateHandler = (event) => {
     event.preventDefault();
-    fetch('URL')
+    fetch(`${this.baseUrl}/auth/status`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${this.props.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        status: this.state.status,
+      }),
+    })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Can't update status!");
@@ -119,10 +132,10 @@ class Feed extends Component {
     formData.append('content', postData.content);
     formData.append('image', postData.image);
 
-    let url = `${this.feedUrl}/post`;
+    let url = `${this.baseUrl}/feed/post`;
     let method = 'POST';
     if (this.state.editPost) {
-      url = `${this.feedUrl}/post/${this.state.editPost.id}`;
+      url = `${this.baseUrl}/feed/post/${this.state.editPost.id}`;
       method = 'PUT';
     }
 
@@ -182,7 +195,7 @@ class Feed extends Component {
 
   deletePostHandler = (postId) => {
     this.setState({ postsLoading: true });
-    fetch(`${this.feedUrl}/post/${postId}`, {
+    fetch(`${this.baseUrl}/feed/post/${postId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${this.props.token}`,

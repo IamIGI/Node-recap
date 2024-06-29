@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { UpdateUser } from '../models/user.model';
 const prisma = new PrismaClient();
 
 async function getUserByEmail(email: string) {
@@ -19,8 +20,18 @@ async function createUser(email: string, password: string, name: string) {
   });
 }
 
+async function updateUser(userId: string, data: UpdateUser) {
+  return await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: { ...data },
+  });
+}
+
 export default {
   getUserByEmail,
   getUserById,
   createUser,
+  updateUser,
 };
