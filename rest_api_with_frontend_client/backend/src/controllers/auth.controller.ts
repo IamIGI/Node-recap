@@ -32,7 +32,7 @@ async function login(req: Request, res: Response, next: NextFunction) {
 
   try {
     const user = await userService.getUserByEmail(email);
-    console.log(user);
+
     if (!user) {
       return res.status(401).json({
         message: 'User where not found.',
@@ -45,11 +45,49 @@ async function login(req: Request, res: Response, next: NextFunction) {
     }
 
     const token = authService.getJWT_token(user);
-    console.log('here');
+
     res.status(200).json({ token, userId: user.id });
   } catch (error) {
     next(error);
   }
 }
 
-export default { register, login };
+async function getUserStatus(req: Request, res: Response, next: NextFunction) {
+  const userId = req.userId!;
+  try {
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(200).json({ status: user.status });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updateUserStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const userId = req.userId!;
+  const newStatus = req.body.status;
+
+  try {
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const updatedUser = await userService.updateUser(userId, {
+      status: newStatus,
+    });
+
+    return res.status(200).json({ message: 'User updated!' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export default { register, login, getUserStatus, updateUserStatus };

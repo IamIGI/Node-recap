@@ -17,7 +17,10 @@ async function getPosts(
   return { countPosts, posts };
 }
 
-async function createPost(payload: PostDto, userId: string) {
+async function createPost(
+  payload: PostDto,
+  userId: string
+): Promise<PostWithUserData> {
   const { title, imageUrl, content } = payload;
 
   const post = await prisma.post.create({
@@ -27,6 +30,7 @@ async function createPost(payload: PostDto, userId: string) {
       imageUrl: `/${imageUrl.replaceAll('\\', '/')}`,
       userId,
     },
+    include: { user: true },
   });
 
   return post;
@@ -40,7 +44,10 @@ async function getPost(postId: string): Promise<PostWithUserData | null> {
   return post;
 }
 
-async function updatePost(postId: string, payload: PostDto) {
+async function updatePost(
+  postId: string,
+  payload: PostDto
+): Promise<PostWithUserData> {
   const updatedPost = await prisma.post.update({
     where: { id: postId },
     data: {
