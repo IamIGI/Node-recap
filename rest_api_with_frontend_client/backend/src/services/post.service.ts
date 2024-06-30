@@ -13,6 +13,7 @@ async function getPosts(
     skip: (page - 1) * itemsPerPage,
     take: itemsPerPage,
     include: { user: true },
+    orderBy: { createdAt: 'desc' },
   });
   return { countPosts, posts };
 }
