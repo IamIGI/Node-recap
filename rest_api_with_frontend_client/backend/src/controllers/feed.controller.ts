@@ -4,15 +4,14 @@ import { PostDto } from '../models/feed.model';
 import postService from '../services/post.service';
 import fileUtils from '../utils/file.utils';
 import postUtils from '../utils/post.utils';
+import socketConfig from '../config/socket.config';
 
 async function getPosts(req: Request, res: Response, next: NextFunction) {
   const page = Number(req.query.page || 1);
 
   try {
     let posts = await postService.getPosts(page);
-    // console.log(posts);
 
-    //TODO: when users added, change this lines of code
     const postsDto = postUtils.getPostsDto(posts.posts);
 
     res.status(200).json({
@@ -77,6 +76,10 @@ async function createPost(req: Request, res: Response, next: NextFunction) {
     }
     const createdPostDto = postUtils.getPostDto(createdPost);
 
+    socketConfig
+      .getIO()
+      .emit('posts', { action: 'create', post: createdPostDto });
+
     res.status(201).json({
       message: 'Post created successfully',
       post: createdPostDto,
@@ -130,6 +133,10 @@ async function updatePost(req: Request, res: Response, next: NextFunction) {
 
     const updatedPostDto = postUtils.getPostDto(updatedPost);
 
+    socketConfig
+      .getIO()
+      .emit('posts', { action: 'update', post: updatedPostDto });
+
     res.status(200).json({ message: 'Post updated!', post: updatedPostDto });
   } catch (error) {
     next(error);
@@ -151,7 +158,11 @@ async function deletePost(req: Request, res: Response, next: NextFunction) {
 
     if (deletedPost) fileUtils.deleteFile(deletedPost.imageUrl);
 
-    res.status(200).json({ message: 'Post deleted', post: deletedPost });
+    socketConfig
+      .getIO()
+      .emit('posts', { action: 'delete', post: deletedPost.id });
+
+    res.status(200).json({ message: 'Post deleted', post: deletedPost.id });
   } catch (error) {
     next(error);
   }

@@ -11,6 +11,10 @@ import { PrismaClient } from '@prisma/client';
 import multerConfig from './config/multer.config';
 import corsConfig from './config/cors.config';
 
+import http from 'http';
+import { Server } from 'socket.io';
+import socketConfig from './config/socket.config';
+
 const app = express();
 dotenv.config();
 const prisma = new PrismaClient();
@@ -27,7 +31,11 @@ app.use(
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   //You need to enable header for token Authorization to work
-  res.setHeader('Access-Control-Allow-Headers', ' Content-Type, Authorization');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    ' Content-Type, Authorization,socket.io '
+  );
+
   next();
 });
 
@@ -49,8 +57,16 @@ async function startServer() {
     console.log('Connected to the database');
 
     const port = 8080;
-    app.listen(port, () => {
+    const server = http.createServer(app);
+
+    server.listen(port, () => {
       console.log(`Server is running on port ${port}`);
+    });
+
+    const io = socketConfig.init(server);
+    //This function will be executed on every client connecting to the socket
+    io.on('connection', (socket) => {
+      console.log('Socket client connected to server');
     });
   } catch (error) {
     console.error('Error connecting to the database:', error);
