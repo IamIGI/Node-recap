@@ -1,6 +1,5 @@
 import express, { NextFunction, Request, Response } from 'express';
-import feedRouter from './routes/feed.router';
-import authRouter from './routes/auth.route';
+
 import bodyParser from 'body-parser';
 import path from 'path';
 import multer from 'multer';
@@ -11,6 +10,11 @@ import { PrismaClient } from '@prisma/client';
 import multerConfig from './config/multer.config';
 import corsConfig from './config/cors.config';
 import http from 'http';
+import { createHandler } from 'graphql-http';
+import { createSchema, createYoga } from 'graphql-yoga';
+import { typeDefinitions } from './graphql/schema';
+import { resolvers } from './graphql/resolvers';
+import { contextConfig } from './graphql/context';
 
 const app = express();
 dotenv.config();
@@ -27,6 +31,7 @@ app.use(
 );
 
 app.use((req: Request, res: Response, next: NextFunction) => {
+  // console.log(req);
   //You need to enable header for token Authorization to work
   res.setHeader(
     'Access-Control-Allow-Headers',
@@ -36,8 +41,15 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use('/feed', feedRouter);
-app.use('/auth', authRouter);
+//graphql handler with yoga lib
+const yoga = createYoga({
+  schema: createSchema({
+    typeDefs: [typeDefinitions],
+    resolvers: [resolvers],
+  }),
+  context: contextConfig,
+});
+app.all('/graphql', yoga);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.log('Final error catch');

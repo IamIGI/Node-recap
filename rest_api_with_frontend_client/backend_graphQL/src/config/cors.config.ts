@@ -1,5 +1,7 @@
 const allowedOrigins: string[] = [
   'http://localhost:3000', //Old React client
+  'http://localhost:5173', //Vite client
+  'http://localhost:5174', //Vite client [second queue]
 ];
 
 const corsConfig = {
