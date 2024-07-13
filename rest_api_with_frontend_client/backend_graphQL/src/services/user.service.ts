@@ -1,16 +1,24 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { UpdateUser } from '../models/user.model';
-const prisma = new PrismaClient();
 
-async function getUserByEmail(email: string) {
+async function getAllUser(prisma: PrismaClient) {
+  return await prisma.user.findMany({});
+}
+
+async function getUserByEmail(prisma: PrismaClient, email: string) {
   return await prisma.user.findFirst({ where: { email } });
 }
 
-async function getUserById(id: string) {
+async function getUserById(prisma: PrismaClient, id: string) {
   return await prisma.user.findFirst({ where: { id } });
 }
 
-async function createUser(email: string, password: string, name: string) {
+async function createUser(
+  prisma: PrismaClient,
+  email: string,
+  password: string,
+  name: string
+) {
   return await prisma.user.create({
     data: {
       email,
@@ -20,7 +28,11 @@ async function createUser(email: string, password: string, name: string) {
   });
 }
 
-async function updateUser(userId: string, data: UpdateUser) {
+async function updateUser(
+  prisma: PrismaClient,
+  userId: string,
+  data: UpdateUser
+) {
   return await prisma.user.update({
     where: {
       id: userId,
@@ -29,9 +41,27 @@ async function updateUser(userId: string, data: UpdateUser) {
   });
 }
 
+async function deleteUser(
+  prisma: PrismaClient,
+  id: string
+): Promise<User | undefined> {
+  try {
+    const deletedUser = await prisma.user.delete({
+      where: { id },
+    });
+
+    return deletedUser;
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+}
+
 export default {
+  getAllUser,
   getUserByEmail,
   getUserById,
   createUser,
   updateUser,
+  deleteUser,
 };
