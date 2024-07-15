@@ -2,6 +2,7 @@ const allowedOrigins: string[] = [
   'http://localhost:3000', //Old React client
   'http://localhost:5173', //Vite client
   'http://localhost:5174', //Vite client [second queue]
+  'http://localhost:8080', //own request (testing graphql with GRAPHIQL)
 ];
 
 const corsConfig = {

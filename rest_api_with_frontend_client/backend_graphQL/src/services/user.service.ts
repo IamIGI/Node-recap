@@ -18,14 +18,20 @@ async function createUser(
   email: string,
   password: string,
   name: string
-) {
-  return await prisma.user.create({
-    data: {
-      email,
-      password,
-      name,
-    },
-  });
+): Promise<User | undefined> {
+  try {
+    return await prisma.user.create({
+      data: {
+        email,
+        password,
+        name,
+      },
+    });
+  } catch (error) {
+    console.log('Could not create an user');
+    console.error(error);
+    return undefined;
+  }
 }
 
 async function updateUser(

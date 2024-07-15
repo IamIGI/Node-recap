@@ -1,5 +1,8 @@
+import { GraphQLError } from 'graphql';
 import userService from '../../services/user.service';
+import passwordUtil from '../../utils/password.util';
 import { Context } from '../context';
+import validator from 'validator';
 
 export type UserInput = {
   name: string;
@@ -16,26 +19,27 @@ const typeDef = /* GraphQL */ `
 
   #Mutations  - CUD operations
   type Mutation {
-    createUser(data: NewUserInput!): User
+    createUser(data: UserInputData!): User
     deleteUser(id: String): User
-    updateUser(id: String, data: NewUserInput!): User
+    updateUser(id: String, data: UserInputData!): User
   }
 
-  input NewUserInput {
+  input UserInputData {
     name: String!
     email: String!
     password: String!
   }
 
   type User {
-    id: String
+    id: ID!
     createdAt: String
     updatedAt: String
 
-    name: String
-    email: String
-    password: String
-    status: String
+    name: String!
+    email: String!
+    password: String!
+    status: String!
+    postsCreatedByUser: [Post!]!
   }
 `;
 
@@ -56,8 +60,51 @@ const resolvers = {
       args: { data: UserInput },
       context: Context
     ) => {
-      console.log('Create user mock');
-      //   return userService.createUser(context.prisma, args.data);
+      const { email, name, password } = args.data;
+      // TODO: email     String   @unique
+      const errors = [];
+      if (!validator.isEmail(email)) {
+        errors.push({ message: 'E-mail is invalid' });
+      }
+
+      if (
+        validator.isEmpty(password) ||
+        !validator.isLength(password, { min: 5 })
+      ) {
+        errors.push({ message: 'Password too short!' });
+      }
+
+      if (errors.length > 0) {
+        // let error: {data: {message: string}[] | undefined, code: number | undefined} = {}
+        // error.data = errors;
+        // error.code = 422;
+
+        return Promise.reject(
+          new GraphQLError('Invalid input.', {
+            extensions: {
+              code: 422,
+              errors,
+            },
+          })
+        );
+      }
+
+      const existingUser = await userService.getUserByEmail(
+        context.prisma,
+        email
+      );
+
+      if (existingUser) {
+        return Promise.reject(new GraphQLError('User already exists.'));
+      }
+      const hashedPassword = passwordUtil.hashPassword(password);
+
+      return await userService.createUser(
+        context.prisma,
+        email,
+        hashedPassword,
+        name
+      );
     },
     deleteUser: async (
       _parent: undefined,

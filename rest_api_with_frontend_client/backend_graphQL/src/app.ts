@@ -37,7 +37,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     'Access-Control-Allow-Headers',
     ' Content-Type, Authorization,socket.io '
   );
-
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   next();
 });
 
@@ -48,6 +50,8 @@ const yoga = createYoga({
     resolvers: [resolvers],
   }),
   context: contextConfig,
+  graphiql: true,
+  maskedErrors: false,
 });
 app.all('/graphql', yoga);
 
