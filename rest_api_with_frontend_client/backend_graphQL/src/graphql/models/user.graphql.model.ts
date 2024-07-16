@@ -23,7 +23,7 @@ const typeDef = /* GraphQL */ `
   type Query {
     allUsers: [User!]!
     userById(id: String): User
-    login(email: String, password: String!): AuthData!
+    login(email: String!, password: String!): AuthData!
   }
 
   #Mutations  - CUD operations
