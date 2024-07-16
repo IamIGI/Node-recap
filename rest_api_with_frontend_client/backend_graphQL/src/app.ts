@@ -10,7 +10,6 @@ import { PrismaClient } from '@prisma/client';
 import multerConfig from './config/multer.config';
 import corsConfig from './config/cors.config';
 import http from 'http';
-import { createHandler } from 'graphql-http';
 import { createSchema, createYoga } from 'graphql-yoga';
 import { typeDefinitions } from './graphql/schema';
 import { resolvers } from './graphql/resolvers';
@@ -37,6 +36,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     'Access-Control-Allow-Headers',
     ' Content-Type, Authorization,socket.io '
   );
+  //Allow graphql client to work
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }

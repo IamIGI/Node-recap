@@ -3,6 +3,9 @@ import userService from '../../services/user.service';
 import passwordUtil from '../../utils/password.util';
 import { Context } from '../context';
 import validator from 'validator';
+import graphqlUtil from '../../utils/graphql.util';
+import authService from '../../services/auth.service';
+import { User } from '@prisma/client';
 
 export type UserInput = {
   name: string;
@@ -10,11 +13,17 @@ export type UserInput = {
   password: string;
 };
 
+export type Auth = {
+  token: string;
+  userId: string;
+};
+
 const typeDef = /* GraphQL */ `
   # Query - Read operation
   type Query {
     allUsers: [User!]!
     userById(id: String): User
+    login(email: String!, password: String!): AuthData!
   }
 
   #Mutations  - CUD operations
@@ -28,6 +37,11 @@ const typeDef = /* GraphQL */ `
     name: String!
     email: String!
     password: String!
+  }
+
+  type AuthData {
+    token: String!
+    userId: String!
   }
 
   type User {
@@ -45,12 +59,39 @@ const typeDef = /* GraphQL */ `
 
 const resolvers = {
   Query: {
-    allUsers: (_parent: undefined, _args: undefined, context: Context) => {
-      return userService.getAllUser(context.prisma);
+    allUsers: async (
+      _parent: undefined,
+      _args: undefined,
+      context: Context
+    ): Promise<User[]> => {
+      return await userService.getAllUser(context.prisma);
     },
-    userById: (_parent: undefined, args: { id: string }, context: Context) => {
+    userById: async (
+      _parent: undefined,
+      args: { id: string },
+      context: Context
+    ): Promise<User | null> => {
       const { id } = args;
-      return userService.getUserById(context.prisma, id);
+      return await userService.getUserById(context.prisma, id);
+    },
+    login: async (
+      _parent: undefined,
+      { email, password }: { email: string; password: string },
+      context: Context
+    ): Promise<Auth> => {
+      const user = await userService.getUserByEmail(context.prisma, email);
+      if (!user) {
+        return graphqlUtil.sendError('User not found', 401);
+      }
+
+      const isMatch = await passwordUtil.comparePassword(password, user);
+      if (!isMatch) {
+        return graphqlUtil.sendError('Wrong password', 401);
+      }
+
+      const token = authService.getJWT_token(user);
+
+      return { token: token, userId: user.id };
     },
   },
   //TODO: Done next
@@ -75,18 +116,7 @@ const resolvers = {
       }
 
       if (errors.length > 0) {
-        // let error: {data: {message: string}[] | undefined, code: number | undefined} = {}
-        // error.data = errors;
-        // error.code = 422;
-
-        return Promise.reject(
-          new GraphQLError('Invalid input.', {
-            extensions: {
-              code: 422,
-              errors,
-            },
-          })
-        );
+        return graphqlUtil.sendError('Invalid input.', 422, errors);
       }
 
       const existingUser = await userService.getUserByEmail(
@@ -95,7 +125,7 @@ const resolvers = {
       );
 
       if (existingUser) {
-        return Promise.reject(new GraphQLError('User already exists.'));
+        return graphqlUtil.sendError('User already exists.', 422);
       }
       const hashedPassword = passwordUtil.hashPassword(password);
 
