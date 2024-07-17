@@ -2,7 +2,7 @@ import express from 'express';
 import { body } from 'express-validator';
 import userService from '../services/user.service';
 import authController from '../controllers/auth.controller';
-import isAuth from '../middleware/is-auth';
+import isAuth from '../middleware/auth.middleware';
 
 const router = express.Router();
 
