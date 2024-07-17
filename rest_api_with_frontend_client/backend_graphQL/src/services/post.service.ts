@@ -1,17 +1,16 @@
+import { PrismaClient } from '@prisma/client';
 import { PostDto, PostWithUserData } from '../models/feed.model';
 
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
-
 async function getPosts(
+  prisma: PrismaClient,
   page: number
 ): Promise<{ countPosts: number; posts: PostWithUserData[] }> {
-  const itemsPerPage = 2;
+  const ITEMS_PER_PAGE = 2;
 
   const countPosts = await prisma.post.count();
   const posts: PostWithUserData[] = await prisma.post.findMany({
-    skip: (page - 1) * itemsPerPage,
-    take: itemsPerPage,
+    skip: (page - 1) * ITEMS_PER_PAGE,
+    take: ITEMS_PER_PAGE,
     include: { user: true },
     orderBy: { createdAt: 'desc' },
   });
@@ -19,6 +18,7 @@ async function getPosts(
 }
 
 async function createPost(
+  prisma: PrismaClient,
   payload: PostDto,
   userId: string
 ): Promise<PostWithUserData> {
@@ -37,7 +37,10 @@ async function createPost(
   return post;
 }
 
-async function getPost(postId: string): Promise<PostWithUserData | null> {
+async function getPost(
+  prisma: PrismaClient,
+  postId: string
+): Promise<PostWithUserData | null> {
   const post: PostWithUserData | null = await prisma.post.findFirst({
     where: { id: postId },
     include: { user: true },
@@ -46,6 +49,7 @@ async function getPost(postId: string): Promise<PostWithUserData | null> {
 }
 
 async function updatePost(
+  prisma: PrismaClient,
   postId: string,
   payload: PostDto
 ): Promise<PostWithUserData> {
@@ -64,7 +68,7 @@ async function updatePost(
   return updatedPost;
 }
 
-async function deletePost(postId: string) {
+async function deletePost(prisma: PrismaClient, postId: string) {
   const deletedPost = await prisma.post.delete({ where: { id: postId } });
   return deletedPost;
 }

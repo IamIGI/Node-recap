@@ -1,11 +1,12 @@
-import { GraphQLError } from 'graphql';
 import userService from '../../services/user.service';
 import passwordUtil from '../../utils/password.util';
-import { Context } from '../context';
+
 import validator from 'validator';
 import graphqlUtil from '../../utils/graphql.util';
 import authService from '../../services/auth.service';
 import { User } from '@prisma/client';
+
+import { GraphQLContext } from '../context';
 
 export type UserInput = {
   name: string;
@@ -26,7 +27,7 @@ const typeDef = /* GraphQL */ `
     login(email: String!, password: String!): AuthData!
   }
 
-  #Mutations  - CUD operations
+  # Mutations - CUD operations
   type Mutation {
     createUser(data: UserInputData!): User
     deleteUser(id: String): User
@@ -62,14 +63,14 @@ const resolvers = {
     allUsers: async (
       _parent: undefined,
       _args: undefined,
-      context: Context
+      context: GraphQLContext
     ): Promise<User[]> => {
       return await userService.getAllUser(context.prisma);
     },
     userById: async (
       _parent: undefined,
       args: { id: string },
-      context: Context
+      context: GraphQLContext
     ): Promise<User | null> => {
       const { id } = args;
       return await userService.getUserById(context.prisma, id);
@@ -77,8 +78,9 @@ const resolvers = {
     login: async (
       _parent: undefined,
       { email, password }: { email: string; password: string },
-      context: Context
+      context: GraphQLContext
     ): Promise<Auth> => {
+      console.log('Login');
       const user = await userService.getUserByEmail(context.prisma, email);
       if (!user) {
         return graphqlUtil.sendError('User not found', 401);
@@ -94,15 +96,13 @@ const resolvers = {
       return { token: token, userId: user.id };
     },
   },
-  //TODO: Done next
   Mutation: {
     createUser: async (
       _parent: undefined,
       args: { data: UserInput },
-      context: Context
+      context: GraphQLContext
     ) => {
       const { email, name, password } = args.data;
-      // TODO: email     String   @unique
       const errors = [];
       if (!validator.isEmail(email)) {
         errors.push({ message: 'E-mail is invalid' });
@@ -139,20 +139,19 @@ const resolvers = {
     deleteUser: async (
       _parent: undefined,
       args: { id: string },
-      context: Context
+      context: GraphQLContext
     ) => {
       return userService.deleteUser(context.prisma, args.id);
     },
     updateUser: async (
       _parent: undefined,
       args: { id: string; data: UserInput },
-      context: Context
+      context: GraphQLContext
     ) => {
       const { id, data } = args;
       return userService.updateUser(context.prisma, id, data);
     },
   },
-  //Modify returned fields when called from given types
   User: {
     name: (obj: { name: string }) => obj.name.trim().toUpperCase(),
   },

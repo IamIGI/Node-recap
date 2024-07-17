@@ -6,18 +6,20 @@ import multer from 'multer';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import { PrismaClient } from '@prisma/client';
 import multerConfig from './config/multer.config';
 import corsConfig from './config/cors.config';
 import http from 'http';
 import { createSchema, createYoga } from 'graphql-yoga';
 import { typeDefinitions } from './graphql/schema';
 import { resolvers } from './graphql/resolvers';
-import { contextConfig } from './graphql/context';
+import authMiddleware from './middleware/auth.middleware';
+import { PrismaClient } from '@prisma/client';
+import { GraphQLContext } from './graphql/context';
+
+const prisma = new PrismaClient();
 
 const app = express();
 dotenv.config();
-const prisma = new PrismaClient();
 
 app.use(cors(corsConfig));
 app.use(bodyParser.json()); //for application/json
@@ -43,17 +45,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+app.use(authMiddleware);
+
 //graphql handler with yoga lib
-const yoga = createYoga({
-  schema: createSchema({
-    typeDefs: [typeDefinitions],
-    resolvers: [resolvers],
-  }),
-  context: contextConfig,
-  graphiql: true,
-  maskedErrors: false,
+app.all('/graphql', (req: Request, res: Response) => {
+  console.log('Graphql handler');
+  return createYoga({
+    schema: createSchema({
+      typeDefs: [typeDefinitions],
+      resolvers: [resolvers],
+    }),
+    context: (): GraphQLContext => ({ prisma, req, res }),
+    graphiql: true,
+    maskedErrors: false,
+  })(req, res);
 });
-app.all('/graphql', yoga);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.log('Final error catch');
