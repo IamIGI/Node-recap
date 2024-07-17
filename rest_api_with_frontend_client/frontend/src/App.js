@@ -61,7 +61,7 @@ class App extends Component {
   loginHandler = (event, authData) => {
     event.preventDefault();
 
-    const query = /* GraphQL */ `
+    const loginQuery = /* GraphQL */ `
       query loginUser($email: String!, $password: String!) {
         login(email: $email, password: $password) {
           token
@@ -77,7 +77,7 @@ class App extends Component {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query,
+        query: loginQuery,
         variables: {
           email: authData.email,
           password: authData.password,
@@ -104,8 +104,8 @@ class App extends Component {
           authLoading: false,
           userId: resData.data.login.userId,
         });
-        localStorage.setItem('token', resData.token);
-        localStorage.setItem('userId', resData.userId);
+        localStorage.setItem('token', resData.data.login.token);
+        localStorage.setItem('userId', resData.data.login.userId);
         const remainingMilliseconds = 60 * 60 * 1000;
         const expiryDate = new Date(
           new Date().getTime() + remainingMilliseconds
