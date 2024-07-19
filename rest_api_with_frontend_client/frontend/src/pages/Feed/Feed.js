@@ -69,6 +69,7 @@ class Feed extends Component {
             creator {
               name
             }
+            imageUrl
           }
           totalPosts
         }
@@ -155,46 +156,55 @@ class Feed extends Component {
       editLoading: true,
     });
     const formData = new FormData();
-    formData.append('title', postData.title);
-    formData.append('content', postData.content);
     formData.append('image', postData.image);
-
-    const query = /* GraphQL */ `
-      mutation CreatePost($postInputData: PostInputData!) {
-        createPost(data: $postInputData) {
-          id
-          title
-          content
-          imageUrl
-          creator {
-            name
-          }
-          createdAt
-        }
-      }
-    `;
-
-    console.log(`Bearer ${this.props.token}`);
-
-    this.setState({ authLoading: true });
-    fetch(`${this.baseUrl}`, {
-      method: 'POST',
+    if (this.state.editPost) {
+      formData.append('oldPath', this.state.editPost.imagePath);
+    }
+    fetch('http://localhost:8080/post-image', {
+      method: 'PUT',
       headers: {
         Authorization: `Bearer ${this.props.token}`,
-        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        query,
-        variables: {
-          postInputData: {
-            title: postData.title,
-            content: postData.content,
-            imageUrl:
-              'https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp',
-          },
-        },
-      }),
+      body: formData,
     })
+      .then((res) => res.json())
+      .then((fileResData) => {
+        const imageUrl = fileResData.filePath;
+        const query = /* GraphQL */ `
+          mutation CreatePost($postInputData: PostInputData!) {
+            createPost(data: $postInputData) {
+              id
+              title
+              content
+              imageUrl
+              creator {
+                name
+              }
+              createdAt
+            }
+          }
+        `;
+
+        // this.setState({ authLoading: true });
+        //GraphQL request
+        return fetch(`${this.baseUrl}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.props.token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query,
+            variables: {
+              postInputData: {
+                title: postData.title,
+                content: postData.content,
+                imageUrl,
+              },
+            },
+          }),
+        });
+      })
       .then((res) => {
         return res.json();
       })
@@ -216,6 +226,7 @@ class Feed extends Component {
           content: postData.content,
           creator: postData.creator,
           createdAt: postData.createdAt,
+          imageUrl: postData.imageUrl,
         };
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];

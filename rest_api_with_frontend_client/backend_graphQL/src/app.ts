@@ -15,6 +15,7 @@ import { resolvers } from './graphql/resolvers';
 import authMiddleware from './middleware/auth.middleware';
 import { PrismaClient } from '@prisma/client';
 import { GraphQLContext } from './graphql/context';
+import fileUtils from './utils/file.utils';
 
 const prisma = new PrismaClient();
 
@@ -46,6 +47,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use(authMiddleware);
+
+app.put('/post-image', (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuth) {
+    throw new Error('Not authenticated');
+  }
+  if (!req.file) return res.status(200).json({ message: 'No file provided!' });
+
+  if (req.body.oldPath) {
+    fileUtils.deleteFile(req.body.oldPath as string);
+  }
+
+  return res
+    .status(201)
+    .json({ message: 'File stored.', filePath: req.file.path });
+});
 
 //graphql handler with yoga lib
 app.all('/graphql', (req: Request, res: Response) => {
