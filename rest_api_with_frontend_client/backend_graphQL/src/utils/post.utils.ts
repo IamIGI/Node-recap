@@ -4,8 +4,10 @@ function getPostsDto(posts: PostWithUserData[]) {
   const postsDto = posts?.map((post) => {
     return {
       ...post,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
       creator: {
-        _id: post.user.id,
+        id: post.user.id,
         name: post.user.name,
       },
     };
@@ -17,6 +19,8 @@ function getPostsDto(posts: PostWithUserData[]) {
 function getPostDto(post: PostWithUserData) {
   const postDto = {
     ...post,
+    createdAt: post.createdAt.toISOString(),
+    updatedAt: post.updatedAt.toISOString(),
     creator: {
       id: post.userId,
       name: post.user.name,

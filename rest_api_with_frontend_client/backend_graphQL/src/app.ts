@@ -53,10 +53,12 @@ app.put('/post-image', (req: Request, res: Response, next: NextFunction) => {
     throw new Error('Not authenticated');
   }
   if (!req.file) return res.status(200).json({ message: 'No file provided!' });
-
-  if (req.body.oldPath) {
-    fileUtils.deleteFile(req.body.oldPath as string);
-  }
+  console.log('old path');
+  //I delete path in given graphql mutation, for example in update post handler
+  console.log(req.body.oldPath);
+  // if (req.body.oldPath) {
+  //   fileUtils.deleteFile(req.body.oldPath as string);
+  // }
 
   return res
     .status(201)

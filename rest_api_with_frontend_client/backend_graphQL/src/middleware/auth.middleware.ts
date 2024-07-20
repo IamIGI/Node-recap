@@ -4,7 +4,6 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 export default function (req: Request, res: Response, next: NextFunction) {
   console.log('Validate authentication');
   const authHeader = req.get('Authorization');
-  console.log(authHeader);
 
   if (!authHeader) {
     req.isAuth = false;
@@ -32,8 +31,7 @@ export default function (req: Request, res: Response, next: NextFunction) {
 
     req.userId = (decodedToken! as JwtPayload).userId;
     req.isAuth = true;
-    console.log(req);
-    console.log('Returning');
+
     next();
   });
 }
