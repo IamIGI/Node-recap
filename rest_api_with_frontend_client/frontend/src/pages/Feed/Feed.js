@@ -72,24 +72,38 @@ class Feed extends Component {
       this.setState({ postPage: page });
     }
 
+    //We could use it then in whole app, so we do not need to every time explicitly says what we want
+    const POST_FIELDS_FRAGMENT = /* GraphQL */ `
+      fragment PostFields on Post {
+        id
+        createdAt
+        updatedAt
+        title
+        imageUrl
+        content
+        user {
+          id
+          email
+          name
+          status
+        }
+        creator {
+          id
+          name
+        }
+      }
+    `;
+
     const query = /* GraphQL */ `
       query getPosts($page: Int!) {
         allPosts(page: $page) {
           posts {
-            id
-            createdAt
-            updatedAt
-            title
-            content
-            creator {
-              id
-              name
-            }
-            imageUrl
+            ...PostFields
           }
           totalPosts
         }
       }
+      ${POST_FIELDS_FRAGMENT}
     `;
 
     fetch(`${this.baseUrl}`, {
