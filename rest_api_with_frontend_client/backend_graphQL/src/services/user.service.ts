@@ -47,6 +47,19 @@ async function updateUser(
   });
 }
 
+async function updateStatus(
+  prisma: PrismaClient,
+  userId: string,
+  status: string
+) {
+  return await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: { status },
+  });
+}
+
 async function deleteUser(
   prisma: PrismaClient,
   id: string
@@ -69,5 +82,6 @@ export default {
   getUserById,
   createUser,
   updateUser,
+  updateStatus,
   deleteUser,
 };
