@@ -32,6 +32,7 @@ const typeDef = /* GraphQL */ `
     createUser(data: UserInputData!): User
     deleteUser(id: String): User
     updateUser(id: String, data: UserInputData!): User
+    updateStatus(id: String, status: String): User!
   }
 
   input UserInputData {
@@ -141,6 +142,10 @@ const resolvers = {
       args: { id: string },
       context: GraphQLContext
     ) => {
+      const { prisma, req } = context;
+      if (!req.isAuth) {
+        return graphqlUtil.sendError('Not authenticated', 401);
+      }
       return userService.deleteUser(context.prisma, args.id);
     },
     updateUser: async (
@@ -148,8 +153,29 @@ const resolvers = {
       args: { id: string; data: UserInput },
       context: GraphQLContext
     ) => {
+      const { prisma, req } = context;
       const { id, data } = args;
-      return userService.updateUser(context.prisma, id, data);
+
+      if (!req.isAuth) {
+        return graphqlUtil.sendError('Not authenticated', 401);
+      }
+
+      return await userService.updateUser(context.prisma, id, data);
+    },
+    updateStatus: async (
+      _parent: undefined,
+      args: { id: string; status: string },
+      context: GraphQLContext
+    ) => {
+      const { prisma, req } = context;
+      const { id, status } = args;
+
+      // if (!req.isAuth) {
+      //   return graphqlUtil.sendError('Not authenticated', 401);
+      // }
+      const user = await userService.updateStatus(context.prisma, id, status);
+      console.log(user);
+      return user;
     },
   },
   User: {

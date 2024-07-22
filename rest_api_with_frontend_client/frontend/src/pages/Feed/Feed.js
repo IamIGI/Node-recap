@@ -24,19 +24,34 @@ class Feed extends Component {
   baseUrl = 'http://localhost:8080/graphql';
 
   componentDidMount() {
-    fetch(`http://localhost:8080/auth/status`, {
+    const query = /* GraphQL */ `
+      query getUserById($userId: String!) {
+        userById(id: $userId) {
+          status
+        }
+      }
+    `;
+    fetch(this.baseUrl, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${this.props.token}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        query,
+        variables: {
+          userId: this.props.userId,
+        },
+      }),
     })
       .then((res) => {
-        if (res.status !== 200) {
-          throw new Error('Failed to fetch user status.');
-        }
         return res.json();
       })
       .then((resData) => {
-        this.setState({ status: resData.status });
+        if (resData.errors) {
+          throw new Error('Fetching status failed.');
+        }
+        this.setState({ status: resData.data.userById.status });
       })
       .catch(this.catchError);
 
@@ -111,23 +126,35 @@ class Feed extends Component {
 
   statusUpdateHandler = (event) => {
     event.preventDefault();
-    fetch(`${this.baseUrl}/auth/status`, {
-      method: 'PATCH',
+
+    const query = /* GraphQL */ `
+      mutation UpdateStatus($userId: String!, $status: String!) {
+        updateStatus(id: $userId, status: $status) {
+          status
+        }
+      }
+    `;
+    fetch(this.baseUrl, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${this.props.token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        status: this.state.status,
+        query,
+        variables: {
+          userId: this.props.userId,
+          status: this.state.status,
+        },
       }),
     })
       .then((res) => {
-        if (res.status !== 200 && res.status !== 201) {
-          throw new Error("Can't update status!");
-        }
         return res.json();
       })
       .then((resData) => {
+        if (resData.errors) {
+          throw new Error('Fetching posts failed.');
+        }
         console.log(resData);
       })
       .catch(this.catchError);
@@ -276,7 +303,9 @@ class Feed extends Component {
             );
             updatedPosts[postIndex] = post;
           } else {
-            updatedPosts.pop();
+            if (prevState.posts.length >= 2) {
+              updatedPosts.pop();
+            }
             updatedPosts.unshift(post);
           }
           return {
