@@ -8,7 +8,7 @@ import passwordUtil from '../../../utils/password.util';
 
 import {
   MOCK_HASHED_PASSWORD,
-  MOCK_USER,
+  MOCK_USER_DB,
 } from '../../mocks/auth_controller.mocks';
 
 dotenv.config();
@@ -32,26 +32,28 @@ describe('Auth Controller - register', () => {
     (passwordUtil.hashPassword as jest.Mock).mockReturnValue(
       MOCK_HASHED_PASSWORD
     );
-    (userService.createUser as jest.Mock).mockResolvedValue(MOCK_USER);
+    (userService.createUser as jest.Mock).mockResolvedValue(MOCK_USER_DB);
 
     const response = await request(app).put('/auth/register').send({
-      email: MOCK_USER.email,
-      password: MOCK_USER.password,
-      name: MOCK_USER.name,
+      email: MOCK_USER_DB.email,
+      password: MOCK_USER_DB.password,
+      name: MOCK_USER_DB.name,
     });
 
-    expect(userService.getUserByEmail).toHaveBeenCalledWith(MOCK_USER.email);
-    expect(passwordUtil.hashPassword).toHaveBeenCalledWith(MOCK_USER.password);
+    expect(userService.getUserByEmail).toHaveBeenCalledWith(MOCK_USER_DB.email);
+    expect(passwordUtil.hashPassword).toHaveBeenCalledWith(
+      MOCK_USER_DB.password
+    );
     expect(userService.createUser).toHaveBeenCalledWith(
-      MOCK_USER.email,
+      MOCK_USER_DB.email,
       MOCK_HASHED_PASSWORD,
-      MOCK_USER.name
+      MOCK_USER_DB.name
     );
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({
       message: 'User created!',
-      userId: MOCK_USER.id,
+      userId: MOCK_USER_DB.id,
     });
   });
 
@@ -71,12 +73,12 @@ describe('Auth Controller - register', () => {
   });
 
   it('should return 422 if email already exists', async () => {
-    (userService.getUserByEmail as jest.Mock).mockResolvedValue(MOCK_USER);
+    (userService.getUserByEmail as jest.Mock).mockResolvedValue(MOCK_USER_DB);
 
     const response = await request(app).put('/auth/register').send({
-      email: MOCK_USER.email,
-      password: MOCK_USER.password,
-      name: MOCK_USER.name,
+      email: MOCK_USER_DB.email,
+      password: MOCK_USER_DB.password,
+      name: MOCK_USER_DB.name,
     });
 
     expect(response.status).toBe(422);
