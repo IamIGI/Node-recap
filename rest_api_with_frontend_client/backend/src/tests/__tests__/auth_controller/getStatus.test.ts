@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import express from 'express';
 import authRouter from '../../../routes/auth.route';
-import { MOCK_USER } from '../../mocks/auth_controller.mocks';
+import { MOCK_USER_DB } from '../../mocks/auth_controller.mocks';
 import userService from '../../../services/user.service';
 import request from 'supertest';
 
@@ -26,21 +26,21 @@ describe('Auth Controller - getUserStatus', () => {
 
   beforeAll(() => {
     token = jwt.sign(
-      { email: MOCK_USER.email, userId: MOCK_USER.id },
+      { email: MOCK_USER_DB.email, userId: MOCK_USER_DB.id },
       jwt_token as string,
       { expiresIn: jwt_expires_time }
     );
   });
 
   it('should return the status of the user', async () => {
-    (userService.getUserById as jest.Mock).mockResolvedValue(MOCK_USER);
+    (userService.getUserById as jest.Mock).mockResolvedValue(MOCK_USER_DB);
 
     const response = await request(app)
       .get('/auth/status')
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: MOCK_USER.status });
+    expect(response.body).toEqual({ status: MOCK_USER_DB.status });
   });
 
   it('should return 404 if user not found', async () => {
