@@ -9,7 +9,9 @@
     "build": "tsc --outDir dist",
     "resetDB": "node prisma/utils/resetDB.js",
     "migrate": "npx prisma migrate dev",
-    "test": "jest"
+    "test": "jest",
+    "test_posts": "npx jest src/tests/__tests__/feed_controller",
+    "test_users": "npx jest src/tests/__tests__/auth_controller/getStatus.test.ts"
   },
   "keywords": [],
   "author": "",
