@@ -2,18 +2,18 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import express from 'express';
+import request from 'supertest';
+
 import authRouter from '../../../routes/auth.route';
 import { MOCK_USER_DB } from '../../mocks/auth_controller.mocks';
 import userService from '../../../services/user.service';
-import request from 'supertest';
-
-dotenv.config();
 
 //Tell jest that I will declare mocked version of methods from given services
 jest.mock('../../../services/user.service');
 jest.mock('../../../utils/password.util');
 jest.mock('../../../services/auth.service.ts');
 
+dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 app.use('/auth', authRouter);
@@ -38,6 +38,8 @@ describe('Auth Controller - getUserStatus', () => {
     const response = await request(app)
       .get('/auth/status')
       .set('Authorization', `Bearer ${token}`);
+
+    console.log(response);
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: MOCK_USER_DB.status });

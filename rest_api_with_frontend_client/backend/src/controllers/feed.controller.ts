@@ -44,6 +44,7 @@ async function getPost(req: Request, res: Response, next: NextFunction) {
 }
 
 async function createPost(req: Request, res: Response, next: NextFunction) {
+  console.log('executed');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({
